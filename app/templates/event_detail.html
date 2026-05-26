@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} – TicketInit{% endblock %}
+
+{% block head %}
+<meta property="og:title"       content="{{ event.title }}" />
+<meta property="og:description" content="{{ event.description[:160] if event.description else event.title }}" />
+{% if event.poster_url %}
+<meta property="og:image"       content="{{ event.poster_url }}" />
+{% endif %}
+<meta property="og:type"        content="website" />
+<meta property="og:url"         content="{{ event_url }}" />
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="flex items-center gap-2 text-sm text-ink-400 mb-6">
+  <a href="/" class="hover:text-brand-700 transition-colors">Events</a>
+  <i class="fa-solid fa-chevron-right text-xs"></i>
+  <span class="text-ink-700 font-medium line-clamp-1">{{ event.title }}</span>
+</nav>
+
+<!-- ── MAIN GRID (5 cols) ────────────────────────────────────────────────── -->
+<div class="grid gap-6 lg:gap-8 lg:grid-cols-5">
+
+  <!-- ══ LEFT COL (col-span-3) ════════════════════════════════════════════ -->
+  <div class="lg:col-span-3 space-y-6">
+
+    <!-- Poster -->
+    <div class="card overflow-hidden">
+      {% if event.poster_url %}
+      <img src="{{ event.poster_url }}"
+           alt="{{ event.title }} Poster"
+           class="w-full h-auto object-cover {% if past %}grayscale opacity-80{% endif %}"
+           loading="eager" />
+      {% else %}
+      <div class="aspect-video bg-gradient-to-br from-brand-100 to-brand-200
+                  flex items-center justify-center {% if past %}grayscale opacity-80{% endif %}">
+        <i class="fa-solid fa-ticket-simple text-brand-400 text-6xl"></i>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Title + meta + share -->
+    <div class="card card-body">
+      <h1 class="font-display text-2xl md:text-3xl font-extrabold text-ink-900 leading-tight">
+        {{ event.title }}
+      </h1>
+
+      <!-- Date + Venue grid -->
+      <div class="mt-5 grid sm:grid-cols-2 gap-4 text-sm">
+
+        <!-- Date -->
+        <div class="flex items-start gap-3">
+          <span class="h-10 w-10 rounded-xl bg-brand-50 text-brand-700
+                       flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-calendar-days"></i>
+          </span>
+          <div>
+            <div class="text-ink-400 text-xs uppercase tracking-wide font-semibold mb-0.5">Date</div>
+            <div class="text-ink-900 font-semibold">
+              {{ event.start_date | fmt_date }}
+              {% if event.end_date and event.end_date.date() != event.start_date.date() %}
+              – {{ event.end_date | fmt_date("%-d %b %Y") }}
+              {% endif %}
+            </div>
+            <div class="text-ink-400 text-xs mt-0.5">{{ event.start_date | fmt_time }}</div>
+          </div>
+        </div>
+
+        <!-- Venue -->
+        {% if event.venue or event.location %}
+        <div class="flex items-start gap-3">
+          <span class="h-10 w-10 rounded-xl bg-brand-50 text-brand-700
+                       flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-location-dot"></i>
+          </span>
+          <div class="min-w-0">
+            <div class="text-ink-400 text-xs uppercase tracking-wide font-semibold mb-0.5">Venue</div>
+            {% set map_q = ((event.venue or '') + ', ' + (event.location or '')) | urlencode %}
+            <a href="https://maps.google.com/?q={{ map_q }}"
+               target="_blank" rel="noopener noreferrer"
+               class="text-ink-900 font-semibold hover:text-brand-700 block truncate transition-colors">
+              {{ event.venue or event.location }}
+            </a>
+            {% if event.venue and event.location %}
+            <div class="text-ink-400 text-xs mt-0.5 truncate">{{ event.location }}</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <!-- Organizer -->
+      {% if event.organizer %}
+      <div class="mt-5 pt-5 border-t border-ink-100 flex items-center gap-2 text-sm text-ink-500">
+        <i class="fa-regular fa-building text-ink-300"></i>
+        Organized by
+        <span class="font-semibold text-ink-700">{{ event.organizer }}</span>
+      </div>
+      {% endif %}
+
+      <!-- Share buttons -->
+      <div class="mt-5 {% if not event.organizer %}pt-5 border-t border-ink-100{% endif %}
+                  flex flex-wrap items-center gap-2">
+        <span class="text-xs text-ink-400 uppercase tracking-wide font-semibold mr-1">Share</span>
+        <a href="{{ share_whatsapp }}" target="_blank" rel="noopener noreferrer"
+           class="btn btn-sm btn-whatsapp">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp
+        </a>
+        <a href="{{ share_twitter }}" target="_blank" rel="noopener noreferrer"
+           class="btn btn-sm btn-dark">
+          <i class="fa-brands fa-x-twitter"></i> Post
+        </a>
+        <button type="button" class="btn btn-sm btn-soft" id="copyLinkBtn"
+                data-url="{{ event_url }}">
+          <i class="fa-solid fa-link"></i>
+          <span id="copyLinkText">Copy link</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- About -->
+    {% if event.description %}
+    <div class="card card-body">
+      <h2 class="font-display text-lg font-bold text-ink-900 mb-3">About this event</h2>
+      <div class="text-sm text-ink-600 leading-relaxed space-y-2">
+        {% for para in event.description.split('\n') %}
+        {% if para.strip() %}<p>{{ para }}</p>{% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+  <!-- end left col -->
+
+
+  <!-- ══ RIGHT COL (col-span-2, sticky) ═══════════════════════════════════ -->
+  <div class="lg:col-span-2">
+    <div class="lg:sticky lg:top-24 space-y-4">
+
+      {% if past %}
+      <!-- Past event notice -->
+      <div class="card card-body text-center">
+        <div class="w-12 h-12 rounded-2xl bg-ink-100 flex items-center justify-center mx-auto mb-3">
+          <i class="fa-solid fa-calendar-xmark text-ink-400 text-xl"></i>
+        </div>
+        <h2 class="font-display font-semibold text-ink-700 mb-1">This event has ended</h2>
+        <p class="text-sm text-ink-400 mb-4">Ticket sales are now closed.</p>
+        <a href="/" class="btn btn-brand btn-block">Browse upcoming events</a>
+      </div>
+
+      {% elif tiers %}
+      <!-- ── GET TICKETS CARD ─────────────────────────────────────────── -->
+      <div class="card overflow-hidden">
+        <div class="card-head flex items-center justify-between">
+          <h2 class="text-base font-bold text-ink-900 flex items-center gap-2">
+            <i class="fa-solid fa-ticket text-brand-700"></i> Get Tickets
+          </h2>
+          <span class="badge badge-brand">
+            {{ tiers | length }} tier{% if tiers | length != 1 %}s{% endif %}
+          </span>
+        </div>
+
+        <div class="card-body space-y-3">
+          {% for tier in tiers %}
+          {% set in_cart    = tier.id in cart_by_tier %}
+          {% set cart_qty   = cart_by_tier[tier.id].quantity if in_cart else 1 %}
+          {% set avail      = (tier.capacity - tier.sold) if tier.capacity else 9999 %}
+          {% set sold_out   = avail <= 0 %}
+
+          <div class="rounded-2xl border {% if in_cart %}border-brand-300 bg-brand-50/30{% else %}border-ink-200{% endif %} p-3 sm:p-4
+                      transition-colors">
+            <form action="/cart/add" method="POST" autocomplete="off">
+              <input type="hidden" name="id"   value="{{ tier.id }}" />
+              <input type="hidden" name="slug" value="{{ event.slug }}" />
+
+              <!-- Tier name + price -->
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <div class="min-w-0">
+                  <div class="font-semibold text-ink-900 truncate">{{ tier.name }}</div>
+                  {% if tier.description %}
+                  <div class="text-xs text-ink-400 mt-0.5">{{ tier.description }}</div>
+                  {% endif %}
+                  {% if tier.capacity %}
+                  <div class="text-xs mt-1
+                    {% if avail <= 0 %}text-red-500 font-medium
+                    {% elif avail <= 10 %}text-amber-600 font-medium
+                    {% else %}text-ink-400{% endif %}">
+                    {% if avail <= 0 %}
+                      <i class="fa-solid fa-ban"></i> Sold out
+                    {% elif avail <= 10 %}
+                      <i class="fa-solid fa-fire"></i> Only {{ avail }} left
+                    {% else %}
+                      {{ avail }} available
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="text-right shrink-0">
+                  <div class="font-bold text-ink-900">{{ tier.price | fmt_price }}</div>
+                </div>
+              </div>
+
+              <!-- Qty + CTA -->
+              <div class="flex items-center gap-2">
+                <label class="sr-only" for="qty-{{ tier.id }}">Quantity</label>
+                <input id="qty-{{ tier.id }}" type="number" name="quantity"
+                       min="0" max="{{ [10, avail] | min }}"
+                       value="{{ cart_qty }}"
+                       class="field w-20 text-center font-semibold"
+                       {% if sold_out %}disabled{% endif %}
+                       required />
+                {% if sold_out %}
+                <span class="btn flex-1 bg-ink-100 text-ink-400 cursor-not-allowed justify-center">
+                  Sold Out
+                </span>
+                {% elif in_cart %}
+                <button type="submit" class="btn btn-success flex-1 justify-center">
+                  <i class="fa-solid fa-rotate"></i> Update
+                </button>
+                {% else %}
+                <button type="submit" class="btn btn-primary flex-1 justify-center">
+                  <i class="fa-solid fa-cart-shopping"></i> Add
+                </button>
+                {% endif %}
+              </div>
+
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <!-- end get tickets -->
+
+
+      <!-- ── YOUR ORDER CARD ──────────────────────────────────────────── -->
+      {% if cart_items %}
+      <div class="card overflow-hidden">
+        <div class="card-head flex items-center justify-between">
+          <h2 class="text-base font-bold text-ink-900 flex items-center gap-2">
+            <i class="fa-solid fa-cart-shopping text-brand-700"></i> Your Order
+          </h2>
+          <span class="badge badge-brand">
+            {{ cart_count }} item{% if cart_count != 1 %}s{% endif %}
+          </span>
+        </div>
+
+        <div class="card-body">
+          <ul class="divide-y divide-ink-100">
+            {% for item in cart_items %}
+            <li class="py-3 flex items-start gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-ink-900 truncate text-sm">{{ item.name }}</div>
+                <div class="text-xs text-ink-400 mt-0.5">
+                  {{ item.quantity }} × {{ item.price | int | fmt_price }}
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <div class="font-semibold text-ink-900 text-sm whitespace-nowrap">
+                  {{ (item.price * item.quantity) | int | fmt_price }}
+                </div>
+                <form action="/cart/remove" method="POST" class="inline mt-1"
+                      onsubmit="return confirm('Remove this item?');">
+                  <input type="hidden" name="item_id" value="{{ item.tier_id }}" />
+                  <input type="hidden" name="slug"    value="{{ event.slug }}" />
+                  <button type="submit" class="text-xs text-red-500 hover:text-red-700 transition-colors">
+                    <i class="fa-solid fa-trash"></i> Remove
+                  </button>
+                </form>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+
+          <!-- Total -->
+          <div class="mt-4 pt-4 border-t border-ink-100 flex items-center justify-between">
+            <span class="text-ink-500 text-sm">Total</span>
+            <span class="text-xl font-extrabold text-ink-900">
+              {{ cart_total | int | fmt_price }}
+            </span>
+          </div>
+        </div>
+
+        <div class="card-foot">
+          <a href="/checkout" class="btn btn-primary btn-block btn-lg">
+            Checkout <i class="fa-solid fa-arrow-right text-sm"></i>
+          </a>
+        </div>
+      </div>
+      {% endif %}
+      <!-- end order card -->
+
+
+      {% elif event.is_free or event.min_price is none %}
+      <!-- Free event notice -->
+      <div class="card card-body">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-star text-emerald-600"></i>
+          </div>
+          <div>
+            <p class="font-semibold text-ink-800 text-sm">Free entry — no ticket needed.</p>
+            <p class="text-xs text-ink-400 mt-0.5">Just show up and enjoy!</p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  <!-- end right col -->
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Copy link button
+  const btn = document.getElementById('copyLinkBtn');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      navigator.clipboard.writeText(btn.dataset.url).then(() => {
+        const span = document.getElementById('copyLinkText');
+        span.textContent = 'Copied!';
+        setTimeout(() => { span.textContent = 'Copy link'; }, 2000);
+      });
+    });
+  }
+</script>
+{% endblock %}

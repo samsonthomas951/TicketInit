@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}Processing Payment – TicketInit{% endblock %}
+
+{% block head %}
+<style>
+  @keyframes ping {
+    75%, 100% { transform: scale(1.8); opacity: 0; }
+  }
+  .ping-ring {
+    animation: ping 1.4s cubic-bezier(0,0,0.2,1) infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .spinner-ring {
+    display: inline-block;
+    width: 1.75rem; height: 1.75rem;
+    border: 3px solid #bae6fd;
+    border-top-color: #0369a1;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  .alert-warning {
+    @apply flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="card overflow-hidden">
+
+    <!-- Header bar -->
+    <div class="px-5 py-4 border-b border-ink-100 flex items-center gap-3
+                bg-gradient-to-r from-white to-brand-50">
+      <span class="h-11 w-11 rounded-xl bg-brand-50 text-brand-700
+                   flex items-center justify-center shrink-0 text-xl">
+        {% if method == "M-Pesa" %}
+          <i class="fa-solid fa-mobile-screen"></i>
+        {% else %}
+          <i class="fa-regular fa-credit-card"></i>
+        {% endif %}
+      </span>
+      <div class="min-w-0">
+        <h1 class="text-lg font-bold text-ink-900 leading-tight">Processing payment</h1>
+        <p class="text-sm text-ink-400">
+          Order <span class="font-semibold text-ink-700">#{{ order.id }}</span>
+          &nbsp;·&nbsp; {{ order.total | fmt_price }}
+        </p>
+      </div>
+      <!-- M-Pesa logo badge -->
+      {% if method == "M-Pesa" %}
+      <span class="ml-auto hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full
+                   bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">
+        <i class="fa-solid fa-mobile-screen"></i> M-Pesa
+      </span>
+      {% else %}
+      <span class="ml-auto hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full
+                   bg-sky-50 border border-sky-200 text-sky-700 text-xs font-bold">
+        <i class="fa-regular fa-credit-card"></i> Card
+      </span>
+      {% endif %}
+    </div>
+
+    <!-- Body -->
+    <div class="card-body text-center py-10">
+
+      <!-- Animated spinner ring -->
+      <div class="relative mx-auto h-24 w-24 flex items-center justify-center mb-6">
+        <span class="absolute inset-0 rounded-full bg-brand-100 ping-ring"></span>
+        <span class="absolute inset-0 rounded-full bg-brand-50"></span>
+        <span class="relative h-14 w-14 rounded-full bg-white shadow-md
+                     flex items-center justify-center">
+          <span class="spinner-ring"></span>
+        </span>
+      </div>
+
+      <!-- Status message -->
+      <div id="pollingStatus">
+        {% if method == "M-Pesa" %}
+        <p class="text-ink-900 font-semibold text-lg">Check your phone</p>
+        <p class="text-ink-500 text-sm mt-2 max-w-sm mx-auto leading-relaxed">
+          We've sent an M-Pesa prompt to
+          <span class="font-semibold text-ink-800">{{ phone }}</span>.
+          Enter your M-Pesa PIN to complete payment.
+        </p>
+        {% else %}
+        <p class="text-ink-900 font-semibold text-lg">Awaiting payment confirmation</p>
+        <p class="text-ink-500 text-sm mt-2 max-w-sm mx-auto leading-relaxed">
+          Complete the payment on your card processor screen.
+          This page will update automatically.
+        </p>
+        {% endif %}
+        <p class="mt-4 text-xs text-ink-300 tabular-nums" id="attemptCounter"></p>
+      </div>
+
+      <!-- Timeout / fallback (hidden initially) -->
+      <div id="timeoutMessage" class="hidden text-left max-w-md mx-auto">
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200
+                    text-amber-800 text-sm mb-5">
+          <i class="fa-solid fa-clock mt-0.5 shrink-0"></i>
+          <div>
+            We haven't received your payment confirmation yet.
+            If you've already paid, it may take a moment to process.
+          </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2 justify-center">
+          <a href="{{ success_url }}" class="btn btn-success flex-1 justify-center">
+            <i class="fa-solid fa-check"></i> I've already paid
+          </a>
+          <a href="{{ failed_url }}" class="btn btn-soft flex-1 justify-center text-red-500 border-red-100">
+            <i class="fa-solid fa-arrow-left"></i> Cancel / Try again
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer note -->
+    <div class="card-foot text-center text-xs text-ink-400">
+      <i class="fa-solid fa-circle-info mr-1"></i>
+      This page checks payment status automatically — do not close or refresh.
+    </div>
+
+  </div>
+
+  <!-- Dev simulator (only visible in development) -->
+  <div id="devSimulator"
+       class="mt-4 p-4 rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50
+              text-sm text-amber-800 hidden">
+    <p class="font-semibold mb-2">
+      <i class="fa-solid fa-flask mr-1"></i> Dev: Simulate payment outcome
+    </p>
+    <div class="flex gap-2">
+      <button onclick="simulate('paid')"
+              class="btn btn-success btn-sm flex-1 justify-center">
+        <i class="fa-solid fa-check"></i> Simulate Paid
+      </button>
+      <button onclick="simulate('failed')"
+              class="btn btn-sm flex-1 justify-center bg-red-600 text-white hover:bg-red-700">
+        <i class="fa-solid fa-xmark"></i> Simulate Failed
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const POLL_INTERVAL      = 5000;
+  const MAX_ATTEMPTS       = 36;          // 3 minutes
+  const MAX_CONSEC_ERRORS  = 3;
+
+  const POLL_URL    = {{ poll_url    | tojson }};
+  const SUCCESS_URL = {{ success_url | tojson }};
+  const FAILED_URL  = {{ failed_url  | tojson }};
+  const ORDER_UUID  = {{ order.uuid  | tojson }};
+
+  let attempts        = 0;
+  let consecutiveErrs = 0;
+  let timer           = null;
+
+  const pollingDiv  = document.getElementById('pollingStatus');
+  const timeoutDiv  = document.getElementById('timeoutMessage');
+  const counterEl   = document.getElementById('attemptCounter');
+  const devSim      = document.getElementById('devSimulator');
+
+  // Show dev panel
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    devSim.classList.remove('hidden');
+  }
+
+  function degradeToTimeout() {
+    clearInterval(timer);
+    pollingDiv.classList.add('hidden');
+    timeoutDiv.classList.remove('hidden');
+  }
+
+  function tick() {
+    attempts++;
+    const secsLeft = Math.max(0, (MAX_ATTEMPTS - attempts) * (POLL_INTERVAL / 1000));
+    counterEl.textContent = `Auto-checking… ${Math.ceil(secsLeft)}s remaining`;
+
+    if (attempts >= MAX_ATTEMPTS) { degradeToTimeout(); return; }
+
+    fetch(POLL_URL)
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(data => {
+        consecutiveErrs = 0;
+        if      (data.status === 'paid')   { clearInterval(timer); window.location.href = SUCCESS_URL; }
+        else if (data.status === 'failed') { clearInterval(timer); window.location.href = FAILED_URL; }
+      })
+      .catch(() => {
+        consecutiveErrs++;
+        if (consecutiveErrs >= MAX_CONSEC_ERRORS) degradeToTimeout();
+      });
+  }
+
+  timer = setInterval(tick, POLL_INTERVAL);
+  tick();   // immediate first check
+
+  // Dev helper
+  window.simulate = function (status) {
+    fetch(`/dev/payments/${ORDER_UUID}/simulate?status=${status}`, { method: 'POST' })
+      .then(() => tick());
+  };
+})();
+</script>
+{% endblock %}

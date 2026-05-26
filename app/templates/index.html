@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}TicketInit – Live Events in Kenya{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO ──────────────────────────────────────────────────────────────── -->
+<section class="relative overflow-hidden rounded-3xl mb-8">
+  <!-- Gradient background -->
+  <div class="absolute inset-0 -z-10"
+       style="background:
+         radial-gradient(1100px 350px at 5% -10%, rgba(3,105,161,0.18) 0%, transparent 60%),
+         radial-gradient(800px 350px at 105% 0%,  rgba(2,132,199,0.14) 0%, transparent 55%),
+         linear-gradient(180deg, rgba(3,105,161,0.06) 0%, #f8fafc 100%);">
+  </div>
+
+  <div class="px-5 md:px-10 py-8 md:py-12">
+    <div class="max-w-2xl">
+      <span class="badge badge-brand mb-4">
+        <i class="fa-solid fa-bolt"></i> Live Events in Kenya
+      </span>
+      <h1 class="font-display text-3xl md:text-5xl font-extrabold tracking-tight text-ink-900 leading-tight">
+        Discover unforgettable<br/>
+        <span class="text-brand-700">experiences</span>.
+      </h1>
+      <p class="mt-3 text-ink-500 text-base md:text-lg font-light leading-relaxed">
+        Book concerts, sports, conferences and more —<br class="hidden md:block" />
+        tickets delivered to your phone &amp; email in seconds.
+      </p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href="/?category=music" class="btn btn-brand text-sm">
+          <i class="fa-solid fa-music"></i> Music
+        </a>
+        <a href="/?category=sports" class="btn btn-soft text-sm">
+          <i class="fa-solid fa-trophy"></i> Sports
+        </a>
+        <a href="/?category=arts" class="btn btn-soft text-sm">
+          <i class="fa-solid fa-palette"></i> Arts
+        </a>
+        <a href="/?category=food" class="btn btn-soft text-sm">
+          <i class="fa-solid fa-utensils"></i> Food
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CATEGORIES STRIP ──────────────────────────────────────────────────── -->
+{% if categories %}
+<div class="flex items-center gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
+  <a href="/"
+     class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors
+            {% if not active_category %}bg-brand-700 text-white{% else %}bg-white border border-ink-200 text-ink-600 hover:bg-ink-50{% endif %}">
+    <i class="fa-solid fa-grid-2"></i> All events
+  </a>
+  {% for cat in categories %}
+  <a href="/?category={{ cat.slug }}"
+     class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors
+            {% if active_category == cat.slug %}bg-brand-700 text-white{% else %}bg-white border border-ink-200 text-ink-600 hover:bg-ink-50{% endif %}">
+    {% if cat.icon %}<i class="fa-solid {{ cat.icon }}"></i>{% endif %}
+    {{ cat.name }}
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ── SECTION HEADER ────────────────────────────────────────────────────── -->
+<div class="flex items-end justify-between mb-5">
+  <div>
+    <h2 class="font-display text-xl md:text-2xl font-bold text-ink-900">
+      {% if search %}
+        Results for <span class="text-brand-700">"{{ search }}"</span>
+      {% elif active_category %}
+        {{ active_category | capitalize }} events
+      {% else %}
+        Discover events
+      {% endif %}
+    </h2>
+    <p class="text-sm text-ink-400 mt-0.5">
+      {{ total }} event{% if total != 1 %}s{% endif %} found
+    </p>
+  </div>
+
+  {% if search or active_category %}
+  <a href="/" class="btn btn-ghost text-sm">
+    <i class="fa-solid fa-xmark"></i> Clear filter
+  </a>
+  {% endif %}
+</div>
+
+<!-- ── EVENT GRID ─────────────────────────────────────────────────────────── -->
+{% if events %}
+<div class="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+  {% for event in events %}
+  {% set past = is_past(event) %}
+  <a href="/e/{{ event.slug }}"
+     class="event-card focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-300">
+
+    <!-- Poster -->
+    <div class="relative overflow-hidden">
+      {% if event.poster_url %}
+      <img src="{{ event.poster_url }}"
+           alt="{{ event.title }} poster"
+           class="poster transition-transform duration-300 group-hover:scale-[1.03] {% if past %}grayscale opacity-75{% endif %}"
+           loading="lazy" />
+      {% else %}
+      <!-- Placeholder poster -->
+      <div class="aspect-[4/3] bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center {% if past %}grayscale opacity-75{% endif %}">
+        <i class="fa-solid fa-ticket-simple text-brand-400 text-5xl"></i>
+      </div>
+      {% endif %}
+
+      <!-- Badges overlay -->
+      <div class="absolute top-3 left-3 flex gap-1.5">
+        {% if past %}
+        <span class="badge badge-past backdrop-blur bg-white/85 shadow-sm">Past</span>
+        {% elif event.is_free or event.min_price is none %}
+        <span class="badge badge-free backdrop-blur bg-white/85 shadow-sm">Free</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Card body -->
+    <div class="p-4 flex-1 flex flex-col">
+      <h3 class="font-display font-semibold text-ink-900 leading-snug line-clamp-2 min-h-[3rem] text-sm md:text-base">
+        {{ event.title }}
+      </h3>
+
+      <ul class="mt-3 space-y-1.5 text-sm text-ink-500">
+        <li class="flex items-start gap-2">
+          <i class="fa-solid fa-calendar-days text-brand-600 w-4 mt-0.5 shrink-0"></i>
+          <span>
+            {{ event.start_date | fmt_date }}
+            {% if event.end_date and event.end_date.date() != event.start_date.date() %}
+              – {{ event.end_date | fmt_date }}
+            {% endif %}
+          </span>
+        </li>
+        {% if event.venue or event.location %}
+        <li class="flex items-start gap-2">
+          <i class="fa-solid fa-location-dot text-brand-600 w-4 mt-0.5 shrink-0"></i>
+          <span class="line-clamp-1">{{ event.venue or event.location }}</span>
+        </li>
+        {% endif %}
+      </ul>
+
+      <!-- Footer row -->
+      <div class="mt-4 pt-4 border-t border-ink-100 flex items-center justify-between">
+        <span class="font-semibold text-ink-900 text-sm">
+          {% if event.is_free or event.min_price is none %}
+            Free
+          {% else %}
+            From {{ event.min_price | fmt_price }}
+          {% endif %}
+        </span>
+        {% if past %}
+        <span class="text-sm font-medium text-ink-400">
+          View Event <i class="fa-solid fa-arrow-right text-xs ml-0.5"></i>
+        </span>
+        {% else %}
+        <span class="text-sm font-semibold text-brand-700">
+          Buy Tickets <i class="fa-solid fa-arrow-right text-xs ml-0.5"></i>
+        </span>
+        {% endif %}
+      </div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+{% else %}
+<!-- Empty state -->
+<div class="text-center py-20">
+  <div class="w-16 h-16 rounded-2xl bg-ink-100 flex items-center justify-center mx-auto mb-4">
+    <i class="fa-solid fa-calendar-xmark text-ink-300 text-2xl"></i>
+  </div>
+  <h3 class="font-display font-semibold text-ink-700 text-lg mb-1">No events found</h3>
+  <p class="text-ink-400 text-sm">Try a different search or browse all events.</p>
+  <a href="/" class="btn btn-brand mt-5 mx-auto">Browse all events</a>
+</div>
+{% endif %}
+
+<!-- ── PAGINATION ─────────────────────────────────────────────────────────── -->
+{% if total_pages > 1 %}
+<div class="mt-10 flex justify-center">
+  <nav aria-label="Event pages">
+    <ul class="pagination">
+
+      <!-- Previous -->
+      <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+        {% if page > 1 %}
+        <a class="page-link" href="/?page={{ page - 1 }}{% if search %}&search={{ search }}{% endif %}{% if active_category %}&category={{ active_category }}{% endif %}" aria-label="Previous">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </a>
+        {% else %}
+        <span class="page-link"><i class="fa-solid fa-chevron-left text-xs"></i></span>
+        {% endif %}
+      </li>
+
+      <!-- Page numbers -->
+      {% for p in pages %}
+        {% if p == page %}
+        <li class="page-item active">
+          <span class="page-link">{{ p }}</span>
+        </li>
+        {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+        <li class="page-item">
+          <a class="page-link" href="/?page={{ p }}{% if search %}&search={{ search }}{% endif %}{% if active_category %}&category={{ active_category }}{% endif %}">
+            {{ p }}
+          </a>
+        </li>
+        {% elif p == page - 3 or p == page + 3 %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+
+      <!-- Next -->
+      <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+        {% if page < total_pages %}
+        <a class="page-link" href="/?page={{ page + 1 }}{% if search %}&search={{ search }}{% endif %}{% if active_category %}&category={{ active_category }}{% endif %}" aria-label="Next">
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </a>
+        {% else %}
+        <span class="page-link"><i class="fa-solid fa-chevron-right text-xs"></i></span>
+        {% endif %}
+      </li>
+
+    </ul>
+  </nav>
+</div>
+{% endif %}
+
+{% endblock %}

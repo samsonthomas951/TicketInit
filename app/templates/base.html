@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="TicketInit – discover and book live events in Kenya. Concerts, sports, conferences and more." />
+  <title>{% block title %}TicketInit{% endblock %}</title>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230369a1'/><text x='50%25' y='55%25' font-size='18' text-anchor='middle' dominant-baseline='middle' fill='white' font-family='sans-serif' font-weight='bold'>T</text></svg>" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:  '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            },
+            ink: {
+              50:  '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+            },
+          },
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body: ['DM Sans', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+    :root { --brand: #0369a1; }
+    body { font-family: 'DM Sans', sans-serif; }
+    h1, h2, h3, .font-display { font-family: 'Syne', sans-serif; }
+
+    /* Event card */
+    .event-card {
+      @apply bg-white rounded-2xl overflow-hidden shadow-sm border border-ink-100
+             hover:shadow-md hover:-translate-y-0.5 transition-all duration-200
+             flex flex-col cursor-pointer no-underline;
+    }
+    .event-card .poster {
+      @apply w-full aspect-[4/3] object-cover block;
+    }
+
+    /* Pagination */
+    .pagination { @apply flex items-center gap-1; }
+    .page-link {
+      @apply inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm
+             font-medium text-ink-600 hover:bg-ink-100 transition-colors;
+    }
+    .page-item.active .page-link {
+      @apply bg-brand-700 text-white hover:bg-brand-800;
+    }
+    .page-item.disabled .page-link {
+      @apply opacity-40 cursor-not-allowed hover:bg-transparent;
+    }
+
+    /* Badges */
+    .badge {
+      @apply inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full;
+    }
+    .badge-brand  { @apply bg-brand-100 text-brand-700; }
+    .badge-past   { @apply bg-ink-100 text-ink-500; }
+    .badge-free   { @apply bg-emerald-100 text-emerald-700; }
+
+    /* Field (input) */
+    .field {
+      @apply w-full bg-ink-50 border border-ink-200 rounded-lg px-4 py-2.5
+             text-sm text-ink-800 placeholder-ink-400
+             focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
+             transition;
+    }
+
+    /* Buttons */
+    .btn {
+      @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+             transition-colors duration-150 cursor-pointer;
+    }
+    .btn-brand    { @apply bg-brand-700 text-white hover:bg-brand-800; }
+    .btn-primary  { @apply bg-brand-700 text-white hover:bg-brand-800; }
+    .btn-success  { @apply bg-emerald-600 text-white hover:bg-emerald-700; }
+    .btn-soft     { @apply bg-ink-50 text-ink-700 border border-ink-200 hover:bg-ink-100; }
+    .btn-ghost    { @apply text-ink-600 hover:bg-ink-100; }
+    .btn-whatsapp { @apply bg-[#25D366] text-white hover:bg-[#1ebe5d]; }
+    .btn-dark     { @apply bg-ink-800 text-white hover:bg-ink-900; }
+    .btn-block    { @apply w-full justify-center; }
+    .btn-lg       { @apply py-3 px-6 text-base; }
+    .btn-sm       { @apply py-1.5 px-3 text-xs; }
+
+    /* Cards */
+    .card      { @apply bg-white rounded-2xl border border-ink-100 shadow-sm; }
+    .card-body { @apply p-4 md:p-5; }
+    .card-head { @apply px-4 md:px-5 py-3 border-b border-ink-100; }
+    .card-foot { @apply px-4 md:px-5 py-3 border-t border-ink-100; }
+  </style>
+
+  {% block head %}{% endblock %}
+</head>
+
+<body class="min-h-screen flex flex-col bg-ink-50 text-ink-800 antialiased">
+
+  <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-ink-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-3 py-3">
+
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-2.5 shrink-0 group">
+        <div class="w-9 h-9 rounded-xl bg-brand-700 flex items-center justify-center shadow-sm
+                    group-hover:bg-brand-800 transition-colors">
+          <i class="fa-solid fa-ticket text-white text-base"></i>
+        </div>
+        <span class="font-display font-extrabold text-xl tracking-tight text-ink-900">
+          Ticket<span class="text-brand-700">Init</span>
+        </span>
+      </a>
+
+      <!-- Desktop search -->
+      <form action="/" method="GET" class="hidden md:flex flex-1 max-w-lg ml-4" role="search">
+        {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}" />{% endif %}
+        <div class="relative w-full">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 text-sm"></i>
+          <input type="search" name="search" value="{{ search }}"
+                 class="field pl-10 h-10 rounded-full text-sm"
+                 placeholder="Search events, venues, artists…" />
+        </div>
+      </form>
+
+      <!-- Desktop nav -->
+      <nav class="ml-auto hidden md:flex items-center gap-2">
+        <a href="tel:+254707991991" class="btn btn-soft text-xs py-1.5">
+          <i class="fa-solid fa-phone-volume text-brand-700"></i>
+          <span class="hidden lg:inline">+254 707 991 991</span>
+        </a>
+        <a href="mailto:hello@ticketinit.co.ke" class="btn btn-soft text-xs py-1.5">
+          <i class="fa-solid fa-envelope text-brand-700"></i>
+          <span class="hidden lg:inline">hello@ticketinit.co.ke</span>
+        </a>
+      </nav>
+
+      <!-- Mobile hamburger -->
+      <button id="menuToggle" class="md:hidden btn btn-soft ml-auto p-2" aria-label="Toggle menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+
+    <!-- Mobile drawer -->
+    <div id="mobileMenu" class="md:hidden hidden border-t border-ink-100 bg-white">
+      <div class="max-w-7xl mx-auto px-4 py-3 space-y-3">
+        <form action="/" method="GET" role="search">
+          {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}" />{% endif %}
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400 text-sm"></i>
+            <input type="search" name="search" value="{{ search }}"
+                   class="field pl-10 h-10 rounded-full text-sm"
+                   placeholder="Search events…" />
+          </div>
+        </form>
+        <div class="flex flex-col gap-2">
+          <a href="tel:+254707991991" class="btn btn-soft justify-start text-sm">
+            <i class="fa-solid fa-phone-volume text-brand-700"></i>+254 707 991 991
+          </a>
+          <a href="mailto:hello@ticketinit.co.ke" class="btn btn-soft justify-start text-sm">
+            <i class="fa-solid fa-envelope text-brand-700"></i>hello@ticketinit.co.ke
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── MAIN ───────────────────────────────────────────────────────────── -->
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+  <footer class="mt-auto bg-white border-t border-ink-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div class="grid gap-8 md:grid-cols-4">
+
+        <div class="md:col-span-2">
+          <a href="/" class="flex items-center gap-2.5 mb-3 w-fit">
+            <div class="w-8 h-8 rounded-xl bg-brand-700 flex items-center justify-center">
+              <i class="fa-solid fa-ticket text-white text-sm"></i>
+            </div>
+            <span class="font-display font-extrabold text-lg text-ink-900">
+              Ticket<span class="text-brand-700">Init</span>
+            </span>
+          </a>
+          <p class="text-sm text-ink-500 max-w-sm leading-relaxed">
+            TicketInit is Kenya's event ticketing platform — helping organizers
+            sell tickets and audiences create unforgettable memories.
+          </p>
+          <div class="flex gap-3 mt-4">
+            <a href="#" class="text-ink-400 hover:text-brand-700 transition-colors">
+              <i class="fa-brands fa-x-twitter text-lg"></i>
+            </a>
+            <a href="#" class="text-ink-400 hover:text-brand-700 transition-colors">
+              <i class="fa-brands fa-instagram text-lg"></i>
+            </a>
+            <a href="#" class="text-ink-400 hover:text-brand-700 transition-colors">
+              <i class="fa-brands fa-facebook text-lg"></i>
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h6 class="font-display font-semibold text-ink-900 mb-3 text-sm uppercase tracking-wider">
+            Explore
+          </h6>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/" class="text-ink-500 hover:text-brand-700 transition-colors">Browse events</a></li>
+            <li><a href="/?category=music" class="text-ink-500 hover:text-brand-700 transition-colors">Music</a></li>
+            <li><a href="/?category=sports" class="text-ink-500 hover:text-brand-700 transition-colors">Sports</a></li>
+            <li><a href="/?category=arts" class="text-ink-500 hover:text-brand-700 transition-colors">Arts & Culture</a></li>
+            <li><a href="/refund-policy" class="text-ink-500 hover:text-brand-700 transition-colors">Refund policy</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h6 class="font-display font-semibold text-ink-900 mb-3 text-sm uppercase tracking-wider">
+            Contact
+          </h6>
+          <ul class="space-y-2.5 text-sm text-ink-500">
+            <li>
+              <a href="tel:+254707991991" class="flex items-center gap-2 hover:text-brand-700 transition-colors">
+                <i class="fa-solid fa-phone w-4 text-ink-300"></i>+254 707 991 991
+              </a>
+            </li>
+            <li>
+              <a href="mailto:hello@ticketinit.co.ke" class="flex items-center gap-2 hover:text-brand-700 transition-colors">
+                <i class="fa-solid fa-envelope w-4 text-ink-300"></i>hello@ticketinit.co.ke
+              </a>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fa-solid fa-location-dot w-4 text-ink-300 mt-0.5"></i>
+              Nairobi, Kenya
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="my-6 border-ink-100" />
+      <p class="text-xs text-center text-ink-400">
+        &copy; {{ now.year }} TicketInit. All rights reserved.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu toggle
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('mobileMenu').classList.toggle('hidden');
+    });
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
