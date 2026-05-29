@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'create' %}Create Event{% else %}Edit Event{% endif %}{% endblock %}
+ 
+{% block content %}
+<div class="flex items-center gap-4 mb-6">
+  <a href='' class="btn btn-soft py-1.5 px-3"><i class="fa-solid fa-arrow-left"></i> Back</a>
+  <h1 class="text-2xl font-display font-bold text-ink-900">{% if mode == 'create' %}Create Event{% else %}Edit Event{% endif %}</h1>
+</div>
+ 
+{% if errors %}
+<div class="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200 mb-6">
+  <ul class="list-disc ml-5 text-sm space-y-1">
+    {% for err in errors %}<li>{{ err }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+ 
+{% if saved %}
+<div class="bg-emerald-50 text-emerald-700 p-4 rounded-xl border border-emerald-200 mb-6 flex items-center gap-2">
+  <i class="fa-solid fa-check-circle"></i> Event saved successfully!
+</div>
+{% endif %}
+ 
+<form method="POST" action="{% if mode == 'create' %}/admin/events/new{% else %}/admin/events/{{ event.id }}/edit{% endif %}">
+  
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Main Info -->
+    <div class="lg:col-span-2 space-y-6">
+      <div class="card p-6 space-y-4">
+        <h3 class="font-display font-bold text-ink-900 border-b border-ink-100 pb-2">Basic Details</h3>
+        
+        <div>
+          <label class="block text-sm font-semibold text-ink-700 mb-1">Title <span class="text-red-500">*</span></label>
+          <input type="text" name="title" class="field" required value="{{ event.title if event else '' }}" />
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-ink-700 mb-1">Category</label>
+            <select name="category_id" class="field">
+              <option value="">-- None --</option>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if event and event.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-ink-700 mb-1">Organizer</label>
+            <input type="text" name="organizer" class="field" value="{{ event.organizer if event else '' }}" />
+          </div>
+        </div>
+ 
+        <div>
+          <label class="block text-sm font-semibold text-ink-700 mb-1">Description</label>
+          <textarea name="description" rows="4" class="field">{{ event.description if event else '' }}</textarea>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-semibold text-ink-700 mb-1">Poster URL</label>
+          <input type="url" name="poster_url" class="field" value="{{ event.poster_url if event else '' }}" placeholder="https://..." />
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-ink-700 mb-1">Venue Name</label>
+            <input type="text" name="venue" class="field" value="{{ event.venue if event else '' }}" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-ink-700 mb-1">Location Details</label>
+            <input type="text" name="location" class="field" value="{{ event.location if event else '' }}" placeholder="City, Street" />
+          </div>
+        </div>
+      </div>
+      
+      <!-- Tickets -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between border-b border-ink-100 pb-2 mb-4">
+          <h3 class="font-display font-bold text-ink-900">Ticket Tiers</h3>
+          <button type="button" onclick="addTier()" class="btn btn-soft py-1 px-3 text-xs"><i class="fa-solid fa-plus"></i> Add Tier</button>
+        </div>
+        
+        <div id="tiers-container" class="space-y-4">
+          {% for tier in tiers %}
+          <div class="tier-row flex gap-3 items-end p-4 bg-ink-50 border border-ink-200 rounded-lg">
+            <input type="hidden" name="tier_id[]" value="{{ tier.id }}" />
+            <div class="flex-1"><label class="block text-xs font-medium text-ink-500 mb-1">Name</label><input type="text" name="tier_name[]" class="field py-1.5" value="{{ tier.name }}" required></div>
+            <div class="w-24"><label class="block text-xs font-medium text-ink-500 mb-1">Price</label><input type="number" name="tier_price[]" class="field py-1.5" value="{{ tier.price }}" required min="0"></div>
+            <div class="w-24"><label class="block text-xs font-medium text-ink-500 mb-1">Cap.</label><input type="number" name="tier_capacity[]" class="field py-1.5" value="{{ tier.capacity or '' }}" placeholder="∞"></div>
+            <div class="flex-1"><label class="block text-xs font-medium text-ink-500 mb-1">Desc.</label><input type="text" name="tier_desc[]" class="field py-1.5" value="{{ tier.description or '' }}"></div>
+            <button type="button" onclick="this.closest('.tier-row').remove()" class="btn btn-danger py-1.5 px-2.5 mb-0.5"><i class="fa-solid fa-trash"></i></button>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="space-y-6">
+      <div class="card p-6 space-y-4">
+        <h3 class="font-display font-bold text-ink-900 border-b border-ink-100 pb-2">Scheduling</h3>
+        
+        <div>
+          <label class="block text-sm font-semibold text-ink-700 mb-1">Start Date & Time <span class="text-red-500">*</span></label>
+          <input type="datetime-local" name="start_date" class="field" required 
+            value="{% if event and event.start_date %}{{ event.start_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
+        </div>
+        
+        <div>
+          <label class="block text-sm font-semibold text-ink-700 mb-1">End Date & Time</label>
+          <input type="datetime-local" name="end_date" class="field" 
+            value="{% if event and event.end_date %}{{ event.end_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
+        </div>
+        
+        <div class="pt-4 border-t border-ink-100 space-y-3">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="is_free" class="w-4 h-4 text-brand-600 rounded border-ink-300" {% if event and event.is_free %}checked{% endif %}>
+            <span class="text-sm font-medium text-ink-800">Event is Free</span>
+          </label>
+          
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="is_published" class="w-4 h-4 text-brand-600 rounded border-ink-300" {% if not event or event.is_published %}checked{% endif %}>
+            <span class="text-sm font-medium text-ink-800">Publish Event immediately</span>
+          </label>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn btn-brand w-full py-3 text-base">
+        <i class="fa-solid fa-save"></i> Save Event
+      </button>
+    </div>
+  </div>
+</form>
+ 
+<!-- JS Template for Ticket Tier -->
+<template id="tier-template">
+  <div class="tier-row flex gap-3 items-end p-4 bg-ink-50 border border-ink-200 rounded-lg">
+    <input type="hidden" name="tier_id[]" value="" />
+    <div class="flex-1"><label class="block text-xs font-medium text-ink-500 mb-1">Name</label><input type="text" name="tier_name[]" class="field py-1.5" placeholder="e.g. Early Bird" required></div>
+    <div class="w-24"><label class="block text-xs font-medium text-ink-500 mb-1">Price</label><input type="number" name="tier_price[]" class="field py-1.5" required min="0"></div>
+    <div class="w-24"><label class="block text-xs font-medium text-ink-500 mb-1">Cap.</label><input type="number" name="tier_capacity[]" class="field py-1.5" placeholder="∞"></div>
+    <div class="flex-1"><label class="block text-xs font-medium text-ink-500 mb-1">Desc.</label><input type="text" name="tier_desc[]" class="field py-1.5" placeholder="Optional"></div>
+    <button type="button" onclick="this.closest('.tier-row').remove()" class="btn btn-danger py-1.5 px-2.5 mb-0.5"><i class="fa-solid fa-trash"></i></button>
+  </div>
+</template>
+ 
+{% endblock %}
+ 
+{% block scripts %}
+<script>
+  function addTier() {
+    const tpl = document.getElementById('tier-template').content.cloneNode(true);
+    document.getElementById('tiers-container').appendChild(tpl);
+  }
+  // Add a default tier if empty and in create mode
+  {% if mode == 'create' and not tiers %}
+    addTier();
+  {% endif %}
+</script>
+{% endblock %}
