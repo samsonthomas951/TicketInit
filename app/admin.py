@@ -20,6 +20,18 @@ from . import models
 router = APIRouter(prefix="/admin")
 templates = Jinja2Templates(directory="app/templates/admin")
 
+def fmt_date(value: datetime, fmt: str = "%a, %b %d, %Y") -> str:
+    if value is None: return ""
+    if value.tzinfo is None: value = value.replace(tzinfo=timezone.utc)
+    return value.strftime(fmt)
+
+def fmt_price(value) -> str:
+    if value is None: return "Free"
+    try: return f"KES {int(float(value)):,}"
+    except (TypeError, ValueError): return str(value)
+
+templates.env.filters["fmt_date"] = fmt_date
+templates.env.filters["fmt_price"] = fmt_price
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ADMIN_PER_PAGE = 20
