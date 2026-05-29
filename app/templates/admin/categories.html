@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Categories{% endblock %}
+ 
+{% block content %}
+<h1 class="text-2xl font-display font-bold text-ink-900 mb-6">Event Categories</h1>
+ 
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+  
+  <!-- Add New Form -->
+  <div class="md:col-span-1">
+    <div class="card p-5">
+      <h3 class="font-display font-bold text-ink-900 mb-4">Add Category</h3>
+      <form action="/admin/categories/new" method="POST" class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-ink-700 mb-1">Name <span class="text-red-500">*</span></label>
+          <input type="text" name="name" class="field" required placeholder="e.g. Music" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ink-700 mb-1">FontAwesome Icon</label>
+          <input type="text" name="icon" class="field" placeholder="fa-music" />
+          <p class="text-xs text-ink-400 mt-1">Class name, e.g. "fa-music"</p>
+        </div>
+        <button type="submit" class="btn btn-brand w-full"><i class="fa-solid fa-plus"></i> Add Category</button>
+      </form>
+    </div>
+  </div>
+ 
+  <!-- List -->
+  <div class="md:col-span-2">
+    <div class="card overflow-hidden">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-ink-50 text-ink-500 border-b border-ink-200">
+          <tr>
+            <th class="px-5 py-3 font-medium">Icon</th>
+            <th class="px-5 py-3 font-medium">Name</th>
+            <th class="px-5 py-3 font-medium">Slug</th>
+            <th class="px-5 py-3 font-medium text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-ink-100">
+          {% for cat in categories %}
+          <tr class="hover:bg-ink-50">
+            <td class="px-5 py-3 text-ink-500 text-lg">
+              {% if cat.icon %}<i class="fa-solid {{ cat.icon }}"></i>{% endif %}
+            </td>
+            <td class="px-5 py-3 font-medium text-ink-900">{{ cat.name }}</td>
+            <td class="px-5 py-3 text-ink-500 font-mono text-xs">{{ cat.slug }}</td>
+            <td class="px-5 py-3 text-right">
+              <form action="/admin/categories/{{ cat.id }}/delete" method="POST" onsubmit="return confirm('Delete this category?');">
+                <button type="submit" class="btn btn-danger py-1 px-2 text-xs"><i class="fa-solid fa-trash"></i> Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="px-5 py-8 text-center text-ink-500">No categories found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+ 
+</div>
+{% endblock %}
