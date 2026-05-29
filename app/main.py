@@ -330,6 +330,10 @@ from sqlalchemy import or_, case, asc
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
+from passlib.context import CryptContext
+from .database import SessionLocal
+from .admin import router as admin_router
+
 from . import models
 from .database import engine, get_db
 
@@ -344,6 +348,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 EVENTS_PER_PAGE = 24
 
+app.include_router(admin_router)
 
 # ── Jinja2 filters ─────────────────────────────────────────────────────────────
 def fmt_date(value: datetime, fmt: str = "%a, %b %d, %Y") -> str:
@@ -761,7 +766,7 @@ async def payment_status(order_uuid: str, db: Session = Depends(get_db)):
     )
 
 
-# ── DEV: Simulate payment outcome (remove in production) ─────────────────────
+# ── DEV: Simulate payment outcome ─────────────────────
 @app.post("/dev/payments/{order_uuid}/simulate")
 async def dev_simulate(order_uuid: str, status: str, db: Session = Depends(get_db)):
     """
@@ -778,6 +783,21 @@ async def dev_simulate(order_uuid: str, status: str, db: Session = Depends(get_d
     order.status = status
     db.commit()
     return {"ok": True, "uuid": order_uuid, "status": status}
+
+@app.on_event("startup")
+def create_default_admin():
+    db = SessionLocal()
+    try:
+        # Check if any admin exists
+        if not db.query(models.AdminUser).first():
+            pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+            hashed_pw = pwd_ctx.hash("admin")  # Default password: admin
+            default_admin = models.AdminUser(username="admin", password_hash=hashed_pw)
+            db.add(default_admin)
+            db.commit()
+            print("Default admin created! Username: admin | Password: admin")
+    finally:
+        db.close()
 
 
 # ── HEALTH ────────────────────────────────────────────────────────────────────
