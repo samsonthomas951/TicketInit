@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Login - TicketInit</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://justpaste.it/redirect/nldtw/https%3A%2F%2Ffonts.googleapis.com%2Fcss2%3Ffamily%3DSyne%3Awght%40700%26amp%3Bfamily%3DDM%2BSans%3Awght%40400%3B500%26amp%3Bdisplay%3Dswap" rel="nofollow" />
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center font-['DM_Sans'] p-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+    <div class="text-center mb-8">
+      <div class="w-12 h-12 rounded-xl bg-sky-600 flex items-center justify-center text-white text-xl mx-auto mb-3">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zM9 15v-4h2v4H9zm4 0v-6h2v6h-2z"></path></svg>
+      </div>
+      <h1 class="font-['Syne'] font-bold text-2xl text-slate-900">Admin Login</h1>
+      <p class="text-sm text-slate-500 mt-1">Sign in to manage TicketInit</p>
+    </div>
+ 
+    {% if error %}
+    <div class="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100 mb-5 text-center">
+      {{ error }}
+    </div>
+    {% endif %}
+ 
+    <form method="POST" action="/admin/login" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Username</label>
+        <input type="text" name="username" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" required />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+        <input type="password" name="password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" required />
+      </div>
+      <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-medium py-2.5 rounded-lg transition-colors">
+        Log In
+      </button>
+    </form>
+  </div>
+</body>
+</html>
