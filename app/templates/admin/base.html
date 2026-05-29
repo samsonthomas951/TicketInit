@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Admin Dashboard{% endblock %} - TicketInit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        colors: { brand: { 50:'#f0f9ff', 100:'#e0f2fe', 500:'#0ea5e9', 600:'#0284c7', 700:'#0369a1', 800:'#075985', 900:'#0c4a6e' },
+                  ink: { 50:'#f8fafc', 100:'#f1f5f9', 200:'#e2e8f0', 300:'#cbd5e1', 400:'#94a3b8', 500:'#64748b', 600:'#475569', 800:'#1e293b', 900:'#0f172a'} },
+        fontFamily: { display: ['Syne', 'sans-serif'], body: ['DM Sans', 'sans-serif'] },
+      }}
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; background-color: #f8fafc; }
+    h1, h2, h3, h4, h5, h6, .font-display { font-family: 'Syne', sans-serif; }
+    .field { @apply w-full bg-white border border-ink-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-shadow; }
+    .btn { @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer; }
+    .btn-brand { @apply bg-brand-700 text-white hover:bg-brand-800; }
+    .btn-soft { @apply bg-ink-100 text-ink-700 hover:bg-ink-200; }
+    .btn-danger { @apply bg-red-50 text-red-600 hover:bg-red-100; }
+    .card { @apply bg-white rounded-xl shadow-sm border border-ink-200 overflow-hidden; }
+    .nav-item { @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100 hover:text-ink-900 transition-colors; }
+    .nav-item.active { @apply bg-brand-50 text-brand-700; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body class="flex h-screen overflow-hidden text-ink-800">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white border-r border-ink-200 flex flex-col hidden md:flex shrink-0">
+    <div class="p-5 border-b border-ink-100">
+      <a href="/admin" class="flex items-center gap-2.5 group">
+        <div class="w-8 h-8 rounded-lg bg-brand-700 flex items-center justify-center text-white text-sm"><i class="fa-solid fa-ticket"></i></div>
+        <span class="font-display font-extrabold text-lg text-ink-900">Admin<span class="text-brand-700">Init</span></span>
+      </a>
+    </div>
+    <nav class="p-4 space-y-1.5 flex-1 overflow-y-auto">
+      <a href="/admin" class="nav-item {% if request.url.path == '/admin' %}active{% endif %}"><i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard</a>
+      <a href="/admin/events" class="nav-item {% if '/admin/events' in request.url.path %}active{% endif %}"><i class="fa-solid fa-calendar-days w-5 text-center"></i> Events</a>
+      <a href="/admin/categories" class="nav-item {% if '/admin/categories' in request.url.path %}active{% endif %}"><i class="fa-solid fa-layer-group w-5 text-center"></i> Categories</a>
+      <a href="/admin/orders" class="nav-item {% if '/admin/orders' in request.url.path %}active{% endif %}"><i class="fa-solid fa-receipt w-5 text-center"></i> Orders</a>
+    </nav>
+    <div class="p-4 border-t border-ink-100 text-sm flex items-center justify-between">
+      <span class="font-medium text-ink-700"><i class="fa-solid fa-user-circle mr-1"></i> {{ admin.username }}</span>
+      <a href="/admin/logout" class="text-red-500 hover:text-red-700" title="Logout"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col h-full min-w-0">
+    <header class="bg-white border-b border-ink-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10 md:hidden">
+      <span class="font-display font-bold text-ink-900">TicketInit Admin</span>
+      <a href="/admin/logout" class="text-sm text-red-500"><i class="fa-solid fa-power-off"></i> Logout</a>
+    </header>
+    <main class="flex-1 overflow-y-auto p-6 lg:p-8">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
