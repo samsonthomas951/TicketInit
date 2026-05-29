@@ -242,7 +242,7 @@ async def admin_event_create(
         try:
             p = float(price)
         except ValueError:
-            errors.append(f"Invalid price for tier "{name}".")
+            errors.append(f"Invalid price for tier '{name}'.")
             continue
         cap_raw = tier_capacities[i] if i < len(tier_capacities) else ""
         cap = int(cap_raw) if cap_raw.strip().isdigit() else None
@@ -374,7 +374,7 @@ async def admin_event_update(
         try:
             p = float(price)
         except ValueError:
-            errors.append(f"Invalid price for tier "{name}".")
+            errors.append(f"Invalid price for tier '{name}'.")
             continue
         cap_raw = tier_capacities[i] if i < len(tier_capacities) else ""
         cap  = int(cap_raw) if cap_raw.strip().isdigit() else None
