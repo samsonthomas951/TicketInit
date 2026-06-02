@@ -1,79 +1,131 @@
 {% extends "base.html" %}
 {% block title %}Orders{% endblock %}
- 
-{% block content %}
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-display font-bold text-ink-900">Orders</h1>
+
+{% block page_header %}
+<div>
+  <h1 class="font-display font-bold text-lg text-ink-900 leading-tight">Orders</h1>
+  <p class="text-xs text-ink-400">
+    {{ total }} order{% if total != 1 %}s{% endif %}
+    {% if status_filter %} · filtered by <span class="font-semibold">{{ status_filter }}</span>{% endif %}
+  </p>
 </div>
- 
-<div class="card">
-  <!-- Filtering -->
-  <div class="p-4 border-b border-ink-100 flex items-center justify-between bg-ink-50/50">
-    <form action="/admin/orders" method="GET" class="flex gap-3">
-      <select name="status" class="field py-1.5" onchange="this.form.submit()">
-        <option value="">All Statuses</option>
-        <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
-        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+{% endblock %}
+
+{% block content %}
+<div class="card overflow-hidden">
+
+  <!-- Filter bar -->
+  <div class="card-head flex flex-wrap items-center gap-3">
+    <form action="/admin/orders" method="GET" class="flex items-center gap-2">
+      <label class="text-sm font-medium text-ink-600 whitespace-nowrap">Filter status:</label>
+      <select name="status" class="field w-auto py-1.5" onchange="this.form.submit()">
+        <option value="">All statuses</option>
+        <option value="paid"       {% if status_filter == 'paid'       %}selected{% endif %}>Paid</option>
         <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>Processing</option>
-        <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+        <option value="pending"    {% if status_filter == 'pending'    %}selected{% endif %}>Pending</option>
+        <option value="failed"     {% if status_filter == 'failed'     %}selected{% endif %}>Failed</option>
       </select>
     </form>
-    <div class="text-sm text-ink-500">{{ total }} order{% if total != 1 %}s{% endif %}</div>
+    {% if status_filter %}
+    <a href="/admin/orders" class="text-sm text-brand-700 hover:underline">
+      <i class="fa-solid fa-xmark mr-1"></i>Clear filter
+    </a>
+    {% endif %}
   </div>
- 
+
+  <!-- Table -->
   <div class="overflow-x-auto">
-    <table class="w-full text-left text-sm whitespace-nowrap">
-      <thead class="bg-ink-50 text-ink-500 border-b border-ink-200">
+    <table class="data-table">
+      <thead>
         <tr>
-          <th class="px-5 py-3 font-medium">Order ID / UUID</th>
-          <th class="px-5 py-3 font-medium">Customer Details</th>
-          <th class="px-5 py-3 font-medium">Total</th>
-          <th class="px-5 py-3 font-medium">Status</th>
-          <th class="px-5 py-3 font-medium">Method</th>
-          <th class="px-5 py-3 font-medium text-right">Date</th>
+          <th>Order</th>
+          <th>Customer</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Method</th>
+          <th class="text-right">Date</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-ink-100">
+      <tbody>
         {% for order in orders %}
-        <tr class="hover:bg-ink-50">
-          <td class="px-5 py-4">
-            <div class="font-medium text-ink-900">#{{ order.id }}</div>
-            <div class="text-xs text-ink-400 font-mono">{{ order.uuid.split('-')[0] }}...</div>
+        <tr>
+          <td>
+            <div class="font-semibold text-ink-900">#{{ order.id }}</div>
+            <div class="text-xs font-mono text-ink-400 mt-0.5">
+              {{ order.uuid[:8] }}…
+            </div>
           </td>
-          <td class="px-5 py-4">
+          <td>
             <div class="font-medium text-ink-900">{{ order.name }}</div>
-            <div class="text-xs text-ink-500">{{ order.email }}</div>
-            <div class="text-xs text-ink-500">{{ order.phone }}</div>
+            <div class="text-xs text-ink-400">{{ order.email }}</div>
+            <div class="text-xs text-ink-400">{{ order.phone }}</div>
           </td>
-          <td class="px-5 py-4 font-bold text-ink-800">{{ order.total | fmt_price }}</td>
-          <td class="px-5 py-4">
-            <span class="px-2 py-1 text-xs font-semibold rounded-full 
-              {% if order.status == 'paid' %}bg-emerald-100 text-emerald-700
-              {% elif order.status == 'processing' %}bg-amber-100 text-amber-700
-              {% elif order.status == 'failed' %}bg-red-100 text-red-700
-              {% else %}bg-ink-100 text-ink-700{% endif %}">
-              {{ order.status | title }}
+          <td class="font-bold text-ink-900 whitespace-nowrap">
+            {{ order.total | fmt_price }}
+          </td>
+          <td>
+            <span class="badge
+              {% if order.status == 'paid' %}badge-paid
+              {% elif order.status == 'processing' %}badge-processing
+              {% elif order.status == 'failed' %}badge-failed
+              {% else %}badge-draft{% endif %}">
+              {% if order.status == 'paid' %}
+                <i class="fa-solid fa-check"></i> Paid
+              {% elif order.status == 'processing' %}
+                <i class="fa-solid fa-spinner fa-spin"></i> Processing
+              {% elif order.status == 'failed' %}
+                <i class="fa-solid fa-xmark"></i> Failed
+              {% else %}
+                <i class="fa-regular fa-clock"></i> {{ order.status | title }}
+              {% endif %}
             </span>
           </td>
-          <td class="px-5 py-4 text-ink-600">{{ order.payment_method }}</td>
-          <td class="px-5 py-4 text-right text-ink-500 text-xs">
+          <td>
+            <div class="flex items-center gap-1.5 text-sm text-ink-600">
+              {% if order.payment_method == 'M-Pesa' %}
+              <i class="fa-solid fa-mobile-screen text-emerald-600"></i>
+              {% else %}
+              <i class="fa-regular fa-credit-card text-sky-600"></i>
+              {% endif %}
+              {{ order.payment_method }}
+            </div>
+          </td>
+          <td class="text-right text-xs text-ink-500 whitespace-nowrap">
             {{ order.created_at | fmt_date }}
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="px-5 py-8 text-center text-ink-500">No orders found.</td></tr>
+        <tr>
+          <td colspan="6" class="text-center py-12">
+            <div class="flex flex-col items-center gap-2 text-ink-400">
+              <i class="fa-solid fa-receipt text-3xl text-ink-200"></i>
+              <span class="font-medium">No orders found.</span>
+              {% if status_filter %}
+              <a href="/admin/orders" class="text-sm text-brand-700 hover:underline">Clear filter</a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
- 
+
   <!-- Pagination -->
   {% if total_pages > 1 %}
-  <div class="p-4 border-t border-ink-100 flex justify-end gap-1">
-    {% for p in pages %}
-      <a href='' class="px-3 py-1.5 rounded-lg text-sm {% if p == page %}bg-brand-700 text-white{% else %}bg-ink-100 text-ink-700 hover:bg-ink-200{% endif %}">{{ p }}</a>
-    {% endfor %}
+  <div class="card-foot flex items-center justify-between text-sm">
+    <span class="text-ink-400">Page {{ page }} of {{ total_pages }}</span>
+    <div class="flex gap-1">
+      {% for p in pages %}
+      <a href="/admin/orders?page={{ p }}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+         class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors
+                {% if p == page %}bg-brand-700 text-white{% else %}bg-ink-100 text-ink-600 hover:bg-ink-200{% endif %}">
+        {{ p }}
+      </a>
+      {% endfor %}
+    </div>
   </div>
   {% endif %}
+
 </div>
 {% endblock %}
