@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Admin{% endblock %} — TicketInit</title>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230369a1'/><text x='50%25' y='55%25' font-size='18' text-anchor='middle' dominant-baseline='middle' fill='white' font-family='sans-serif' font-weight='bold'>T</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:  '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            },
+            ink: {
+              50:  '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+            },
+          },
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body:    ['DM Sans', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+    :root { --brand: #0369a1; }
+    body  { font-family: 'DM Sans', sans-serif; }
+    h1, h2, h3, h4, h5, h6, .font-display { font-family: 'Syne', sans-serif; }
+    .field {
+      width: 100%;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 0.625rem 1rem;
+      font-size: 0.875rem;
+      color: #1e293b;
+      transition: box-shadow .15s, border-color .15s;
+      outline: none;
+    }
+    .field:focus {
+      border-color: #0369a1;
+      box-shadow: 0 0 0 3px rgba(3,105,161,0.15);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color .15s, color .15s;
+      text-decoration: none;
+      border: none;
+    }
+    .btn-brand   { background:#0369a1; color:#fff; }
+    .btn-brand:hover { background:#075985; }
+    .btn-primary { background:#0369a1; color:#fff; }
+    .btn-primary:hover { background:#075985; }
+    .btn-soft    { background:#f1f5f9; color:#334155; border:1px solid #e2e8f0; }
+    .btn-soft:hover { background:#e2e8f0; }
+    .btn-danger  { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+    .btn-danger:hover { background:#fee2e2; }
+    .btn-success { background:#059669; color:#fff; }
+    .btn-success:hover { background:#047857; }
+    .btn-sm  { padding:0.375rem 0.75rem; font-size:0.75rem; }
+    .btn-lg  { padding:0.75rem 1.5rem; font-size:1rem; }
+    .btn-block { width:100%; justify-content:center; }
+
+    .card      { background:#fff; border-radius:1rem; border:1px solid #e2e8f0; box-shadow:0 1px 3px rgba(0,0,0,.05); overflow:hidden; }
+    .card-body { padding:1.25rem; }
+    .card-head { padding:0.875rem 1.25rem; border-bottom:1px solid #f1f5f9; }
+    .card-foot { padding:0.875rem 1.25rem; border-top:1px solid #f1f5f9; }
+
+    .badge { display:inline-flex; align-items:center; gap:0.375rem; font-size:0.75rem; font-weight:600; padding:0.25rem 0.625rem; border-radius:9999px; }
+    .badge-brand  { background:#e0f2fe; color:#0369a1; }
+    .badge-paid   { background:#d1fae5; color:#065f46; }
+    .badge-processing { background:#fef3c7; color:#92400e; }
+    .badge-failed { background:#fee2e2; color:#991b1b; }
+    .badge-draft  { background:#f1f5f9; color:#475569; }
+    
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.625rem 0.875rem;
+      border-radius: 0.625rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #475569;
+      text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .nav-item:hover { background:#f1f5f9; color:#1e293b; }
+    .nav-item.active { background:#e0f2fe; color:#0369a1; font-weight:600; }
+    .nav-item .nav-icon { width:1.25rem; text-align:center; flex-shrink:0; }
+
+    .data-table { width:100%; font-size:0.875rem; border-collapse:collapse; }
+    .data-table thead { background:#f8fafc; }
+    .data-table thead th { padding:0.75rem 1.25rem; font-weight:600; color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid #e2e8f0; text-align:left; }
+    .data-table tbody tr { border-bottom:1px solid #f1f5f9; transition:background .1s; }
+    .data-table tbody tr:hover { background:#f8fafc; }
+    .data-table tbody td { padding:0.875rem 1.25rem; color:#1e293b; vertical-align:middle; }
+    .data-table tbody tr:last-child { border-bottom:none; }
+    
+    #sidebarOverlay { display:none; }
+    #sidebarOverlay.active { display:block; }
+  </style>
+
+  {% block head %}{% endblock %}
+</head>
+
+<body class="min-h-screen bg-ink-50 text-ink-800 antialiased flex">
+
+  <div id="sidebarOverlay"
+       class="fixed inset-0 z-20 bg-ink-900/40 backdrop-blur-sm md:hidden"
+       onclick="toggleSidebar()"></div>
+
+  <aside id="sidebar"
+         class="fixed md:sticky top-0 left-0 z-30 h-screen w-64 bg-white border-r border-ink-100
+                flex flex-col shrink-0 -translate-x-full md:translate-x-0 transition-transform duration-200">
+
+    <div class="px-5 py-4 border-b border-ink-100">
+      <a href="/" class="flex items-center gap-2.5 group" target="_blank">
+        <div class="w-9 h-9 rounded-xl bg-brand-700 flex items-center justify-center shadow-sm
+                    group-hover:bg-brand-800 transition-colors">
+          <i class="fa-solid fa-ticket text-white text-sm"></i>
+        </div>
+        <span class="font-display font-extrabold text-xl tracking-tight text-ink-900">
+          Ticket<span class="text-brand-700">Init</span>
+        </span>
+      </a>
+      <div class="mt-2 flex items-center gap-1.5 text-xs text-ink-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+        Admin Panel
+      </div>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto p-3 space-y-0.5">
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-300 px-3 pt-2 pb-1">
+        Overview
+      </p>
+      <a href="/admin"
+         class="nav-item {% if request.url.path == '/admin' or request.url.path == '/admin/' %}active{% endif %}">
+        <i class="nav-icon fa-solid fa-chart-pie"></i>
+        Dashboard
+      </a>
+
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-300 px-3 pt-4 pb-1">
+        Content
+      </p>
+      <a href="/admin/events"
+         class="nav-item {% if '/admin/events' in request.url.path %}active{% endif %}">
+        <i class="nav-icon fa-solid fa-calendar-days"></i>
+        Events
+      </a>
+      <a href="/admin/categories"
+         class="nav-item {% if '/admin/categories' in request.url.path %}active{% endif %}">
+        <i class="nav-icon fa-solid fa-layer-group"></i>
+        Categories
+      </a>
+
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-300 px-3 pt-4 pb-1">
+        Commerce
+      </p>
+      <a href="/admin/orders"
+         class="nav-item {% if '/admin/orders' in request.url.path %}active{% endif %}">
+        <i class="nav-icon fa-solid fa-receipt"></i>
+        Orders
+      </a>
+
+      <div class="pt-4 pb-2">
+        <div class="border-t border-ink-100"></div>
+      </div>
+
+      <a href="/" target="_blank" class="nav-item text-ink-400 hover:text-brand-700">
+        <i class="nav-icon fa-solid fa-arrow-up-right-from-square"></i>
+        View public site
+      </a>
+    </nav>
+
+    <div class="p-3 border-t border-ink-100">
+      <div class="flex items-center gap-3 px-2 py-2">
+        <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-user text-brand-700 text-xs"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="text-sm font-semibold text-ink-800 truncate">{{ admin.username }}</div>
+          <div class="text-xs text-ink-400">Administrator</div>
+        </div>
+        <a href="/admin/logout"
+           class="text-ink-300 hover:text-red-500 transition-colors p-1 rounded"
+           title="Logout">
+          <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+
+    <header class="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-ink-100
+                   px-4 sm:px-6 py-3 flex items-center gap-3">
+
+      <button onclick="toggleSidebar()"
+              class="md:hidden btn btn-soft p-2 shrink-0" aria-label="Open menu">
+        <i class="fa-solid fa-bars text-sm"></i>
+      </button>
+
+      <div class="flex-1 min-w-0">
+        {% block page_header %}{% endblock %}
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        {% block header_actions %}{% endblock %}
+      </div>
+    </header>
+
+    <main class="flex-1 p-4 sm:p-6 lg:p-8">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const s = document.getElementById('sidebar');
+      const o = document.getElementById('sidebarOverlay');
+      s.classList.toggle('-translate-x-full');
+      o.classList.toggle('active');
+    }
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
