@@ -1,157 +1,341 @@
 {% extends "base.html" %}
-{% block title %}{% if mode == 'create' %}Create Event{% else %}Edit Event{% endif %}{% endblock %}
- 
-{% block content %}
-<div class="flex items-center gap-4 mb-6">
-  <a href='' class="btn btn-soft py-1.5 px-3"><i class="fa-solid fa-arrow-left"></i> Back</a>
-  <h1 class="text-2xl font-display font-bold text-ink-900">{% if mode == 'create' %}Create Event{% else %}Edit Event{% endif %}</h1>
+{% block title %}{% if mode == 'create' %}Create Event{% else %}Edit — {{ event.title }}{% endif %}{% endblock %}
+
+{% block page_header %}
+<div class="flex items-center gap-3">
+  <a href="/admin/events" class="btn btn-soft btn-sm">
+    <i class="fa-solid fa-arrow-left"></i>
+  </a>
+  <div>
+    <h1 class="font-display font-bold text-lg text-ink-900 leading-tight">
+      {% if mode == 'create' %}Create event{% else %}Edit event{% endif %}
+    </h1>
+    {% if mode == 'edit' %}
+    <p class="text-xs text-ink-400 truncate max-w-xs">{{ event.title }}</p>
+    {% endif %}
+  </div>
 </div>
- 
+{% endblock %}
+
+{% block header_actions %}
+{% if mode == 'edit' %}
+<a href="/e/{{ event.slug }}" target="_blank"
+   class="btn btn-soft btn-sm hidden sm:inline-flex">
+  <i class="fa-solid fa-arrow-up-right-from-square"></i> Preview
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<!-- Alerts -->
 {% if errors %}
-<div class="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200 mb-6">
-  <ul class="list-disc ml-5 text-sm space-y-1">
+<div class="mb-6 flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-100 text-red-700">
+  <i class="fa-solid fa-circle-exclamation mt-0.5 shrink-0"></i>
+  <ul class="text-sm space-y-1 list-disc ml-1">
     {% for err in errors %}<li>{{ err }}</li>{% endfor %}
   </ul>
 </div>
 {% endif %}
- 
+
 {% if saved %}
-<div class="bg-emerald-50 text-emerald-700 p-4 rounded-xl border border-emerald-200 mb-6 flex items-center gap-2">
-  <i class="fa-solid fa-check-circle"></i> Event saved successfully!
+<div class="mb-6 flex items-center gap-2.5 p-4 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700">
+  <i class="fa-solid fa-circle-check shrink-0"></i>
+  <span class="text-sm font-medium">Event saved successfully!</span>
 </div>
 {% endif %}
- 
-<form method="POST" action="{% if mode == 'create' %}/admin/events/new{% else %}/admin/events/{{ event.id }}/edit{% endif %}">
-  
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-    <!-- Main Info -->
-    <div class="lg:col-span-2 space-y-6">
-      <div class="card p-6 space-y-4">
-        <h3 class="font-display font-bold text-ink-900 border-b border-ink-100 pb-2">Basic Details</h3>
-        
-        <div>
-          <label class="block text-sm font-semibold text-ink-700 mb-1">Title <span class="text-red-500">*</span></label>
-          <input type="text" name="title" class="field" required value="{{ event.title if event else '' }}" />
+
+
+<form method="POST"
+      action="{% if mode == 'create' %}/admin/events/new{% else %}/admin/events/{{ event.id }}/edit{% endif %}">
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <div class="lg:col-span-2 space-y-5">
+
+      <!-- Basic info -->
+      <div class="card overflow-hidden">
+        <div class="card-head">
+          <h2 class="font-display font-bold text-ink-900 text-sm">Basic Details</h2>
         </div>
-        
-        <div class="grid grid-cols-2 gap-4">
+        <div class="card-body space-y-4">
+
           <div>
-            <label class="block text-sm font-semibold text-ink-700 mb-1">Category</label>
-            <select name="category_id" class="field">
-              <option value="">-- None --</option>
-              {% for cat in categories %}
-                <option value="{{ cat.id }}" {% if event and event.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
-              {% endfor %}
-            </select>
+            <label class="block text-sm font-semibold text-ink-700 mb-1.5">
+              Title <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="title" class="field"
+                   value="{{ event.title if event else '' }}"
+                   placeholder="e.g. Afrobeats Night at KICC" required />
           </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-ink-700 mb-1.5">Category</label>
+              <select name="category_id" class="field">
+                <option value="">— None —</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}"
+                  {% if event and event.category_id == cat.id %}selected{% endif %}>
+                  {{ cat.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-ink-700 mb-1.5">Organizer</label>
+              <input type="text" name="organizer" class="field"
+                     value="{{ event.organizer if event else '' }}"
+                     placeholder="e.g. Homeboyz Entertainment" />
+            </div>
+          </div>
+
           <div>
-            <label class="block text-sm font-semibold text-ink-700 mb-1">Organizer</label>
-            <input type="text" name="organizer" class="field" value="{{ event.organizer if event else '' }}" />
+            <label class="block text-sm font-semibold text-ink-700 mb-1.5">Description</label>
+            <textarea name="description" rows="4" class="field resize-none"
+                      placeholder="Tell attendees what to expect…">{{ event.description if event else '' }}</textarea>
           </div>
-        </div>
- 
-        <div>
-          <label class="block text-sm font-semibold text-ink-700 mb-1">Description</label>
-          <textarea name="description" rows="4" class="field">{{ event.description if event else '' }}</textarea>
-        </div>
-        
-        <div>
-          <label class="block text-sm font-semibold text-ink-700 mb-1">Poster URL</label>
-          <input type="url" name="poster_url" class="field" value="{{ event.poster_url if event else '' }}" placeholder="https://..." />
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4">
+
           <div>
-            <label class="block text-sm font-semibold text-ink-700 mb-1">Venue Name</label>
-            <input type="text" name="venue" class="field" value="{{ event.venue if event else '' }}" />
+            <label class="block text-sm font-semibold text-ink-700 mb-1.5">Poster Image URL</label>
+            <div class="relative">
+              <i class="fa-solid fa-image absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-300 text-sm"></i>
+              <input type="url" name="poster_url" class="field pl-10"
+                     value="{{ event.poster_url if event else '' }}"
+                     placeholder="https://example.com/poster.jpg" />
+            </div>
+            {% if event and event.poster_url %}
+            <div class="mt-2 flex items-center gap-3">
+              <img src="{{ event.poster_url }}" alt="Poster preview"
+                   class="w-16 h-16 rounded-lg object-cover border border-ink-200" />
+              <span class="text-xs text-ink-400">Current poster</span>
+            </div>
+            {% endif %}
           </div>
-          <div>
-            <label class="block text-sm font-semibold text-ink-700 mb-1">Location Details</label>
-            <input type="text" name="location" class="field" value="{{ event.location if event else '' }}" placeholder="City, Street" />
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-ink-700 mb-1.5">Venue Name</label>
+              <input type="text" name="venue" class="field"
+                     value="{{ event.venue if event else '' }}"
+                     placeholder="e.g. Carnivore Grounds" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-ink-700 mb-1.5">Location / Address</label>
+              <input type="text" name="location" class="field"
+                     value="{{ event.location if event else '' }}"
+                     placeholder="e.g. Langata Rd, Nairobi" />
+            </div>
           </div>
+
         </div>
       </div>
-      
-      <!-- Tickets -->
-      <div class="card p-6">
-        <div class="flex items-center justify-between border-b border-ink-100 pb-2 mb-4">
-          <h3 class="font-display font-bold text-ink-900">Ticket Tiers</h3>
-          <button type="button" onclick="addTier()" class="btn btn-soft py-1 px-3 text-xs"><i class="fa-solid fa-plus"></i> Add Tier</button>
+
+      <div class="card overflow-hidden">
+        <div class="card-head flex items-center justify-between">
+          <div>
+            <h2 class="font-display font-bold text-ink-900 text-sm">Ticket Tiers</h2>
+            <p class="text-xs text-ink-400 mt-0.5">Set names, prices, and capacities per tier.</p>
+          </div>
+          <button type="button" onclick="addTier()"
+                  class="btn btn-soft btn-sm">
+            <i class="fa-solid fa-plus"></i> Add tier
+          </button>
         </div>
-        
-        <div id="tiers-container" class="space-y-4">
+
+        <div id="tiers-container" class="divide-y divide-ink-100">
           {% for tier in tiers %}
-          <div class="tier-row flex gap-3 items-end p-4 bg-ink-50 border border-ink-200 rounded-lg">
+          <div class="tier-row grid grid-cols-[1fr_7rem_7rem_1fr_auto] gap-3 items-end p-4">
             <input type="hidden" name="tier_id[]" value="{{ tier.id }}" />
-            <div class="flex-1"><label class="block text-xs font-medium text-ink-500 mb-1">Name</label><input type="text" name="tier_name[]" class="field py-1.5" value="{{ tier.name }}" required></div>
-            <div class="w-24"><label class="block text-xs font-medium text-ink-500 mb-1">Price</label><input type="number" name="tier_price[]" class="field py-1.5" value="{{ tier.price }}" required min="0"></div>
-            <div class="w-24"><label class="block text-xs font-medium text-ink-500 mb-1">Cap.</label><input type="number" name="tier_capacity[]" class="field py-1.5" value="{{ tier.capacity or '' }}" placeholder="∞"></div>
-            <div class="flex-1"><label class="block text-xs font-medium text-ink-500 mb-1">Desc.</label><input type="text" name="tier_desc[]" class="field py-1.5" value="{{ tier.description or '' }}"></div>
-            <button type="button" onclick="this.closest('.tier-row').remove()" class="btn btn-danger py-1.5 px-2.5 mb-0.5"><i class="fa-solid fa-trash"></i></button>
+            <div>
+              <label class="block text-xs font-medium text-ink-500 mb-1">Name</label>
+              <input type="text" name="tier_name[]" class="field"
+                     value="{{ tier.name }}" placeholder="e.g. VIP" required />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-ink-500 mb-1">Price (KES)</label>
+              <input type="number" name="tier_price[]" class="field"
+                     value="{{ tier.price }}" min="0" step="50" required />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-ink-500 mb-1">Capacity</label>
+              <input type="number" name="tier_capacity[]" class="field"
+                     value="{{ tier.capacity or '' }}" min="1" placeholder="∞" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-ink-500 mb-1">Description</label>
+              <input type="text" name="tier_desc[]" class="field"
+                     value="{{ tier.description or '' }}" placeholder="Optional note" />
+            </div>
+            <div class="pb-0.5">
+              <button type="button" onclick="removeTier(this)"
+                      class="btn btn-danger btn-sm p-2" aria-label="Remove tier">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
           </div>
           {% endfor %}
         </div>
+
+        <div id="tiersEmpty"
+             class="{% if tiers %}hidden{% endif %} p-8 text-center text-ink-400">
+          <i class="fa-solid fa-ticket text-2xl text-ink-200 mb-2 block"></i>
+          <p class="text-sm">No ticket tiers yet.</p>
+          <button type="button" onclick="addTier()"
+                  class="btn btn-soft btn-sm mt-3 mx-auto">
+            <i class="fa-solid fa-plus"></i> Add first tier
+          </button>
+        </div>
       </div>
+
     </div>
-    
-    <!-- Sidebar -->
-    <div class="space-y-6">
-      <div class="card p-6 space-y-4">
-        <h3 class="font-display font-bold text-ink-900 border-b border-ink-100 pb-2">Scheduling</h3>
-        
-        <div>
-          <label class="block text-sm font-semibold text-ink-700 mb-1">Start Date & Time <span class="text-red-500">*</span></label>
-          <input type="datetime-local" name="start_date" class="field" required 
-            value="{% if event and event.start_date %}{{ event.start_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
+    <div class="space-y-5">
+
+      <!-- Scheduling -->
+      <div class="card overflow-hidden">
+        <div class="card-head">
+          <h2 class="font-display font-bold text-ink-900 text-sm">Scheduling</h2>
         </div>
-        
-        <div>
-          <label class="block text-sm font-semibold text-ink-700 mb-1">End Date & Time</label>
-          <input type="datetime-local" name="end_date" class="field" 
-            value="{% if event and event.end_date %}{{ event.end_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
-        </div>
-        
-        <div class="pt-4 border-t border-ink-100 space-y-3">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" name="is_free" class="w-4 h-4 text-brand-600 rounded border-ink-300" {% if event and event.is_free %}checked{% endif %}>
-            <span class="text-sm font-medium text-ink-800">Event is Free</span>
-          </label>
-          
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" name="is_published" class="w-4 h-4 text-brand-600 rounded border-ink-300" {% if not event or event.is_published %}checked{% endif %}>
-            <span class="text-sm font-medium text-ink-800">Publish Event immediately</span>
-          </label>
+        <div class="card-body space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-ink-700 mb-1.5">
+              Start date & time <span class="text-red-500">*</span>
+            </label>
+            <input type="datetime-local" name="start_date" class="field" required
+                   value="{% if event and event.start_date %}{{ event.start_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-ink-700 mb-1.5">
+              End date & time <span class="text-ink-300 font-normal">(optional)</span>
+            </label>
+            <input type="datetime-local" name="end_date" class="field"
+                   value="{% if event and event.end_date %}{{ event.end_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
+          </div>
         </div>
       </div>
-      
-      <button type="submit" class="btn btn-brand w-full py-3 text-base">
-        <i class="fa-solid fa-save"></i> Save Event
+
+      <div class="card overflow-hidden">
+        <div class="card-head">
+          <h2 class="font-display font-bold text-ink-900 text-sm">Visibility</h2>
+        </div>
+        <div class="card-body space-y-3">
+
+          <label class="flex items-start gap-3 cursor-pointer group">
+            <div class="relative mt-0.5">
+              <input type="checkbox" name="is_free" class="sr-only peer"
+                     {% if event and event.is_free %}checked{% endif %} />
+              <div class="w-5 h-5 rounded border-2 border-ink-200 bg-white
+                          peer-checked:border-brand-700 peer-checked:bg-brand-700
+                          transition-all flex items-center justify-center">
+                <i class="fa-solid fa-check text-white text-[10px] hidden peer-checked:block"></i>
+              </div>
+            </div>
+            <div>
+              <span class="text-sm font-medium text-ink-800">Free admission</span>
+              <p class="text-xs text-ink-400 mt-0.5">No payment required for entry</p>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-3 cursor-pointer group">
+            <div class="relative mt-0.5">
+              <input type="checkbox" name="is_published" class="sr-only peer"
+                     {% if not event or event.is_published %}checked{% endif %} />
+              <div class="w-5 h-5 rounded border-2 border-ink-200 bg-white
+                          peer-checked:border-brand-700 peer-checked:bg-brand-700
+                          transition-all flex items-center justify-center">
+                <i class="fa-solid fa-check text-white text-[10px] hidden peer-checked:block"></i>
+              </div>
+            </div>
+            <div>
+              <span class="text-sm font-medium text-ink-800">Published</span>
+              <p class="text-xs text-ink-400 mt-0.5">Visible on the public site</p>
+            </div>
+          </label>
+
+        </div>
+      </div>
+
+      <!-- Save -->
+      <button type="submit"
+              class="w-full flex items-center justify-center gap-2 py-3 px-4
+                     bg-brand-700 hover:bg-brand-800 text-white font-semibold
+                     rounded-xl transition-colors">
+        <i class="fa-solid fa-floppy-disk"></i>
+        Save event
+      </button>
+
+      {% if mode == 'edit' %}
+      <form action="/admin/events/{{ event.id }}/delete" method="POST"
+            onsubmit="return confirm('Permanently delete this event?');">
+        <button type="submit"
+                class="w-full flex items-center justify-center gap-2 py-2.5 px-4
+                       bg-white hover:bg-red-50 text-red-500 hover:text-red-600
+                       border border-red-100 hover:border-red-200
+                       rounded-xl transition-colors text-sm font-medium">
+          <i class="fa-solid fa-trash"></i>
+          Delete event
+        </button>
+      </form>
+      {% endif %}
+
+    </div>
+
+  </div>
+</form>
+
+<template id="tier-template">
+  <div class="tier-row grid grid-cols-[1fr_7rem_7rem_1fr_auto] gap-3 items-end p-4 border-t border-ink-100">
+    <input type="hidden" name="tier_id[]" value="" />
+    <div>
+      <label class="block text-xs font-medium text-ink-500 mb-1">Name</label>
+      <input type="text" name="tier_name[]" class="field" placeholder="e.g. VIP" required />
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-ink-500 mb-1">Price (KES)</label>
+      <input type="number" name="tier_price[]" class="field" min="0" step="50" placeholder="1000" required />
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-ink-500 mb-1">Capacity</label>
+      <input type="number" name="tier_capacity[]" class="field" min="1" placeholder="∞" />
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-ink-500 mb-1">Description</label>
+      <input type="text" name="tier_desc[]" class="field" placeholder="Optional" />
+    </div>
+    <div class="pb-0.5">
+      <button type="button" onclick="removeTier(this)"
+              class="btn btn-danger btn-sm p-2" aria-label="Remove tier">
+        <i class="fa-solid fa-trash"></i>
       </button>
     </div>
   </div>
-</form>
- 
-<!-- JS Template for Ticket Tier -->
-<template id="tier-template">
-  <div class="tier-row flex gap-3 items-end p-4 bg-ink-50 border border-ink-200 rounded-lg">
-    <input type="hidden" name="tier_id[]" value="" />
-    <div class="flex-1"><label class="block text-xs font-medium text-ink-500 mb-1">Name</label><input type="text" name="tier_name[]" class="field py-1.5" placeholder="e.g. Early Bird" required></div>
-    <div class="w-24"><label class="block text-xs font-medium text-ink-500 mb-1">Price</label><input type="number" name="tier_price[]" class="field py-1.5" required min="0"></div>
-    <div class="w-24"><label class="block text-xs font-medium text-ink-500 mb-1">Cap.</label><input type="number" name="tier_capacity[]" class="field py-1.5" placeholder="∞"></div>
-    <div class="flex-1"><label class="block text-xs font-medium text-ink-500 mb-1">Desc.</label><input type="text" name="tier_desc[]" class="field py-1.5" placeholder="Optional"></div>
-    <button type="button" onclick="this.closest('.tier-row').remove()" class="btn btn-danger py-1.5 px-2.5 mb-0.5"><i class="fa-solid fa-trash"></i></button>
-  </div>
 </template>
- 
+
 {% endblock %}
- 
+
 {% block scripts %}
 <script>
+  const container  = document.getElementById('tiers-container');
+  const emptyState = document.getElementById('tiersEmpty');
+
+  function syncEmpty() {
+    const rows = container.querySelectorAll('.tier-row');
+    emptyState.classList.toggle('hidden', rows.length > 0);
+  }
+
   function addTier() {
     const tpl = document.getElementById('tier-template').content.cloneNode(true);
-    document.getElementById('tiers-container').appendChild(tpl);
+    container.appendChild(tpl);
+    syncEmpty();
+    // Focus the new name input
+    container.lastElementChild?.querySelector('input[name="tier_name[]"]')?.focus();
   }
-  // Add a default tier if empty and in create mode
+
+  function removeTier(btn) {
+    btn.closest('.tier-row').remove();
+    syncEmpty();
+  }
+
   {% if mode == 'create' and not tiers %}
     addTier();
   {% endif %}
