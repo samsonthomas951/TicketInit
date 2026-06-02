@@ -1,73 +1,129 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
- 
+
+{% block page_header %}
+<div>
+  <h1 class="font-display font-bold text-lg text-ink-900 leading-tight">Dashboard</h1>
+  <p class="text-xs text-ink-400">Welcome back, {{ admin.username }}!</p>
+</div>
+{% endblock %}
+
+{% block header_actions %}
+<a href="/admin/events/new" class="btn btn-brand btn-sm">
+  <i class="fa-solid fa-plus"></i>
+  <span class="hidden sm:inline">New Event</span>
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="mb-8">
-  <h1 class="text-2xl font-display font-bold text-ink-900">Dashboard Overview</h1>
-  <p class="text-ink-500 text-sm">Welcome back, {{ admin.username }}!</p>
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+  <div class="card card-body flex flex-col gap-1">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-ink-400 uppercase tracking-wide">Total Events</span>
+      <span class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center">
+        <i class="fa-solid fa-calendar-days text-brand-700 text-sm"></i>
+      </span>
+    </div>
+    <div class="font-display font-extrabold text-3xl text-ink-900">{{ total_events }}</div>
+    <div class="text-sm text-ink-400">
+      <span class="text-brand-700 font-semibold">{{ upcoming }}</span> upcoming
+    </div>
+  </div>
+
+  <div class="card card-body flex flex-col gap-1">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-ink-400 uppercase tracking-wide">Orders</span>
+      <span class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+        <i class="fa-solid fa-receipt text-emerald-600 text-sm"></i>
+      </span>
+    </div>
+    <div class="font-display font-extrabold text-3xl text-ink-900">{{ total_orders }}</div>
+    <div class="text-sm text-ink-400">
+      <span class="text-emerald-600 font-semibold">{{ paid_orders }}</span> paid
+    </div>
+  </div>
+
+  <div class="card card-body flex flex-col gap-1">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-ink-400 uppercase tracking-wide">Revenue</span>
+      <span class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+        <i class="fa-solid fa-coins text-emerald-600 text-sm"></i>
+      </span>
+    </div>
+    <div class="font-display font-extrabold text-2xl text-emerald-600">
+      {{ total_revenue | fmt_price }}
+    </div>
+    <div class="text-sm text-ink-400">from paid orders</div>
+  </div>
+
+  <div class="card card-body flex flex-col gap-1">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-ink-400 uppercase tracking-wide">Categories</span>
+      <span class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center">
+        <i class="fa-solid fa-layer-group text-brand-700 text-sm"></i>
+      </span>
+    </div>
+    <div class="font-display font-extrabold text-3xl text-ink-900">{{ categories | length }}</div>
+    <a href="/admin/categories" class="text-sm text-brand-700 hover:underline">Manage →</a>
+  </div>
+
 </div>
- 
-<!-- Stats Grid -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-  <div class="card p-5">
-    <div class="text-ink-500 text-xs font-semibold uppercase tracking-wide mb-1">Total Events</div>
-    <div class="text-3xl font-display font-bold text-ink-900">{{ total_events }}</div>
-    <div class="text-sm text-ink-400 mt-1">{{ upcoming }} upcoming</div>
+
+<div class="card overflow-hidden">
+  <div class="card-head flex items-center justify-between">
+    <h2 class="font-display font-bold text-ink-900">Recent Orders</h2>
+    <a href="/admin/orders" class="text-sm text-brand-700 hover:underline font-medium">
+      View all <i class="fa-solid fa-arrow-right text-xs ml-0.5"></i>
+    </a>
   </div>
-  <div class="card p-5">
-    <div class="text-ink-500 text-xs font-semibold uppercase tracking-wide mb-1">Total Orders</div>
-    <div class="text-3xl font-display font-bold text-ink-900">{{ total_orders }}</div>
-    <div class="text-sm text-brand-600 mt-1">{{ paid_orders }} paid</div>
-  </div>
-  <div class="card p-5">
-    <div class="text-ink-500 text-xs font-semibold uppercase tracking-wide mb-1">Total Revenue</div>
-    <div class="text-3xl font-display font-bold text-emerald-600">{{ total_revenue | fmt_price }}</div>
-  </div>
-  <div class="card p-5">
-    <div class="text-ink-500 text-xs font-semibold uppercase tracking-wide mb-1">Categories</div>
-    <div class="text-3xl font-display font-bold text-ink-900">{{ categories | length }}</div>
-  </div>
-</div>
- 
-<!-- Recent Orders -->
-<div class="card">
-  <div class="px-5 py-4 border-b border-ink-100 flex justify-between items-center">
-    <h3 class="font-display font-bold text-ink-900">Recent Orders</h3>
-    <a href='' class="text-sm text-brand-700 hover:underline">View All</a>
-  </div>
+
   <div class="overflow-x-auto">
-    <table class="w-full text-left text-sm">
-      <thead class="bg-ink-50 text-ink-500 border-b border-ink-200">
+    <table class="data-table">
+      <thead>
         <tr>
-          <th class="px-5 py-3 font-medium">Order ID</th>
-          <th class="px-5 py-3 font-medium">Customer</th>
-          <th class="px-5 py-3 font-medium">Total</th>
-          <th class="px-5 py-3 font-medium">Status</th>
-          <th class="px-5 py-3 font-medium">Date</th>
+          <th>Order</th>
+          <th>Customer</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Date</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-ink-100">
+      <tbody>
         {% for order in recent_orders %}
-        <tr class="hover:bg-ink-50 transition-colors">
-          <td class="px-5 py-3 font-medium text-ink-900">#{{ order.id }}</td>
-          <td class="px-5 py-3">{{ order.name }}<br/><span class="text-xs text-ink-400">{{ order.email }}</span></td>
-          <td class="px-5 py-3 font-medium">{{ order.total | fmt_price }}</td>
-          <td class="px-5 py-3">
-            <span class="px-2 py-1 text-xs font-semibold rounded-full 
-              {% if order.status == 'paid' %}bg-emerald-100 text-emerald-700
-              {% elif order.status == 'processing' %}bg-amber-100 text-amber-700
-              {% elif order.status == 'failed' %}bg-red-100 text-red-700
-              {% else %}bg-ink-100 text-ink-700{% endif %}">
+        <tr>
+          <td>
+            <span class="font-semibold text-ink-900">#{{ order.id }}</span>
+          </td>
+          <td>
+            <div class="font-medium text-ink-900">{{ order.name }}</div>
+            <div class="text-xs text-ink-400">{{ order.email }}</div>
+          </td>
+          <td class="font-semibold">{{ order.total | fmt_price }}</td>
+          <td>
+            <span class="badge
+              {% if order.status == 'paid' %}badge-paid
+              {% elif order.status == 'processing' %}badge-processing
+              {% elif order.status == 'failed' %}badge-failed
+              {% else %}badge-draft{% endif %}">
+              {% if order.status == 'paid' %}<i class="fa-solid fa-check"></i>
+              {% elif order.status == 'processing' %}<i class="fa-solid fa-spinner fa-spin"></i>
+              {% elif order.status == 'failed' %}<i class="fa-solid fa-xmark"></i>
+              {% else %}<i class="fa-regular fa-clock"></i>{% endif %}
               {{ order.status | title }}
             </span>
           </td>
-          <td class="px-5 py-3 text-ink-500">{{ order.created_at | fmt_date }}</td>
+          <td class="text-ink-500 text-xs">{{ order.created_at | fmt_date }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="5" class="px-5 py-8 text-center text-ink-500">No recent orders found.</td></tr>
+        <tr>
+          <td colspan="5" class="text-center py-10 text-ink-400">No recent orders.</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
 {% endblock %}
