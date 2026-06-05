@@ -199,7 +199,7 @@ def _draw_ticket_page(
 def generate_pdf_tickets(
     order,
     items: list[dict],
-    base_url: str = "https://ticketinit.co.ke",
+    base_url: str = "https://96fd-41-76-168-3.ngrok-free.app",
 ) -> tuple[Path, list[dict]]:
     """
     Generate a multi-page PDF for all tickets in an order.
