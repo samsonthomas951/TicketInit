@@ -18,7 +18,7 @@
       </div>
       <h1 class="font-display text-2xl font-extrabold text-ink-900">You're all set!</h1>
       <p class="text-ink-500 mt-1.5 text-sm max-w-sm mx-auto">
-        Your tickets are confirmed. We've sent them to your email and phone.
+        Your tickets are confirmed. Download your PDF below or we'll send them to your email.
       </p>
     </div>
 
@@ -43,7 +43,28 @@
           <dt class="text-ink-400 text-xs font-semibold uppercase tracking-wide mb-0.5">Email</dt>
           <dd class="font-semibold text-ink-900 truncate">{{ order.email }}</dd>
         </div>
+        {% if order.mpesa_receipt %}
+        <div class="col-span-2 sm:col-span-4">
+          <dt class="text-ink-400 text-xs font-semibold uppercase tracking-wide mb-0.5">
+            M-Pesa Receipt
+          </dt>
+          <dd class="font-semibold text-emerald-700 font-mono text-sm">{{ order.mpesa_receipt }}</dd>
+        </div>
+        {% endif %}
       </dl>
+
+      <!-- ── DOWNLOAD BUTTON ───────────────────────────────────────────── -->
+      <a href="{{ download_url }}"
+         class="btn btn-success btn-block btn-lg font-bold tracking-wide"
+         download>
+        <i class="fa-solid fa-file-pdf text-lg"></i>
+        Download PDF Tickets
+      </a>
+
+      <p class="text-center text-xs text-ink-400 -mt-3">
+        <i class="fa-solid fa-qrcode text-brand-600 mr-1"></i>
+        Each ticket contains a unique QR code — present it at the door for scanning.
+      </p>
 
       <!-- Items -->
       {% if items %}
@@ -71,25 +92,25 @@
       <div class="grid grid-cols-3 gap-3 text-center">
         <div class="card card-body flex flex-col items-center gap-2 py-4">
           <div class="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
-            <i class="fa-solid fa-envelope text-brand-700"></i>
+            <i class="fa-solid fa-file-pdf text-brand-700"></i>
           </div>
-          <p class="text-xs text-ink-500 font-medium leading-tight">Email confirmation sent</p>
-        </div>
-        <div class="card card-body flex flex-col items-center gap-2 py-4">
-          <div class="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
-            <i class="fa-solid fa-mobile-screen text-brand-700"></i>
-          </div>
-          <p class="text-xs text-ink-500 font-medium leading-tight">SMS ticket delivered</p>
+          <p class="text-xs text-ink-500 font-medium leading-tight">PDF ticket ready to download</p>
         </div>
         <div class="card card-body flex flex-col items-center gap-2 py-4">
           <div class="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
             <i class="fa-solid fa-qrcode text-brand-700"></i>
           </div>
-          <p class="text-xs text-ink-500 font-medium leading-tight">QR code at the door</p>
+          <p class="text-xs text-ink-500 font-medium leading-tight">QR scan at the door</p>
+        </div>
+        <div class="card card-body flex flex-col items-center gap-2 py-4">
+          <div class="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
+            <i class="fa-solid fa-envelope text-brand-700"></i>
+          </div>
+          <p class="text-xs text-ink-500 font-medium leading-tight">Email confirmation sent</p>
         </div>
       </div>
 
-      <a href="/" class="btn btn-primary btn-block btn-lg">
+      <a href="/" class="btn btn-soft btn-block">
         <i class="fa-solid fa-ticket"></i> Browse more events
       </a>
 

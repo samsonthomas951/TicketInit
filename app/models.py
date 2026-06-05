@@ -76,10 +76,35 @@ class Order(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+    # ── M-Pesa specific fields ─────────────────────────────────────────────
+    # Safaricom's CheckoutRequestID — used to query STK status
+    mpesa_checkout_request_id = Column(String(100), nullable=True, index=True)
+    # Returned in the Daraja callback on success
+    mpesa_receipt = Column(String(50), nullable=True)
+
+
+class OrderTicket(Base):
+    """
+    One row per individual ticket (ticket_quantity × tiers in an order).
+    Each row has a unique code that is encoded in the QR and used for door scan.
+    """
+    __tablename__ = "order_tickets"
+
+    id = Column(Integer, primary_key=True)
+    order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
+    ticket_code = Column(String(64), unique=True, nullable=False, index=True)
+    tier_name = Column(String(100), nullable=False)
+    event_title = Column(String(255), nullable=False)
+    # used: False = valid, True = already scanned
+    used = Column(Boolean, default=False)
+    used_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class AdminUser(Base):
     __tablename__ = "admin_users"
     id = Column(Integer, primary_key=True)
     username = Column(String(100), unique=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)     
-    is_active    = Column(Boolean, default=True)     
-    created_at   = Column(DateTime(timezone=True), server_default=func.now())
+    password_hash = Column(String(255), nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
