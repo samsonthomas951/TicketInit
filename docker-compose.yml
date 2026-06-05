@@ -24,6 +24,8 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
+    env_file:
+      - .env  
     environment:
       DATABASE_URL: postgresql://ticketinit:ticketinit_pass@db:5432/ticketinit_db
       APP_ENV: development
