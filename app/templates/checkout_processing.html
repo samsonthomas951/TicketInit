@@ -58,7 +58,6 @@
     <div class="card-body text-center py-10">
 
       {% if stk_error %}
-      <!-- STK Push failed to initiate -->
       <div class="mb-6 flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200
                   text-amber-800 text-sm text-left max-w-md mx-auto">
         <i class="fa-solid fa-triangle-exclamation mt-0.5 shrink-0"></i>
@@ -153,25 +152,6 @@
     </div>
 
   </div>
-
-  <!-- Dev simulator -->
-  <div id="devSimulator"
-       class="mt-4 p-4 rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50
-              text-sm text-amber-800 hidden">
-    <p class="font-semibold mb-2">
-      <i class="fa-solid fa-flask mr-1"></i> Dev: Simulate payment outcome
-    </p>
-    <div class="flex gap-2">
-      <button onclick="simulate('paid')"
-              class="btn btn-success btn-sm flex-1 justify-center">
-        <i class="fa-solid fa-check"></i> Simulate Paid
-      </button>
-      <button onclick="simulate('failed')"
-              class="btn btn-sm flex-1 justify-center bg-red-600 text-white hover:bg-red-700">
-        <i class="fa-solid fa-xmark"></i> Simulate Failed
-      </button>
-    </div>
-  </div>
 </div>
 {% endblock %}
 
@@ -185,7 +165,6 @@
   const POLL_URL    = {{ poll_url    | tojson }};
   const SUCCESS_URL = {{ success_url | tojson }};
   const FAILED_URL  = {{ failed_url  | tojson }};
-  const ORDER_UUID  = {{ order.uuid  | tojson }};
 
   let attempts        = 0;
   let consecutiveErrs = 0;
@@ -194,11 +173,6 @@
   const pollingDiv = document.getElementById('pollingStatus');
   const timeoutDiv = document.getElementById('timeoutMessage');
   const counterEl  = document.getElementById('attemptCounter');
-  const devSim     = document.getElementById('devSimulator');
-
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    devSim.classList.remove('hidden');
-  }
 
   function degradeToTimeout() {
     clearInterval(timer);
@@ -209,7 +183,7 @@
   function tick() {
     attempts++;
     const secsLeft = Math.max(0, (MAX_ATTEMPTS - attempts) * (POLL_INTERVAL / 1000));
-    counterEl.textContent = `Auto-checking… ${Math.ceil(secsLeft)}s remaining`;
+    counterEl.textContent = `Auto-checking... ${Math.ceil(secsLeft)}s remaining`;
 
     if (attempts >= MAX_ATTEMPTS) { degradeToTimeout(); return; }
 
@@ -228,11 +202,6 @@
 
   timer = setInterval(tick, POLL_INTERVAL);
   tick();
-
-  window.simulate = function (status) {
-    fetch(`/dev/payments/${ORDER_UUID}/simulate?status=${status}`, { method: 'POST' })
-      .then(() => tick());
-  };
 })();
 </script>
 {% endblock %}
