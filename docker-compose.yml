@@ -1,3 +1,45 @@
+# services:
+#   db:
+#     image: postgres:16-alpine
+#     container_name: ticketinit_db
+#     restart: unless-stopped
+#     environment:
+#       POSTGRES_USER: ticketinit
+#       POSTGRES_PASSWORD: ticketinit_pass
+#       POSTGRES_DB: ticketinit_db
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+#     ports:
+#       - "5433:5432"
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U ticketinit -d ticketinit_db"]
+#       interval: 5s
+#       timeout: 5s
+#       retries: 10
+
+#   web:
+#     build: .
+#     container_name: ticketinit_web
+#     restart: unless-stopped
+#     ports:
+#       - "8000:8000"
+#     env_file:
+#       - .env  
+#     environment:
+#       DATABASE_URL: postgresql://ticketinit:ticketinit_pass@db:5432/ticketinit_db
+#       APP_ENV: development
+#     volumes:
+#       - ./app:/app/app
+#       - ./static:/app/static
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+# volumes:
+#   postgres_data:
+# docker-compose.yml
 services:
   db:
     image: postgres:16-alpine
@@ -35,7 +77,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # FIX: Add --reload-dir app to prevent the server from restarting when a PDF is generated.
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir app
 
 volumes:
   postgres_data:

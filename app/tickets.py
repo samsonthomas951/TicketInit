@@ -107,8 +107,8 @@ def _draw_ticket_page(
     # Event title
     c.setFillColor(WHITE)
     c.setFont("Helvetica-Bold", 20)
-    # Truncate long titles
-    title_display = event_title if len(event_title) <= 50 else event_title[:47] + "…"
+    # FIX: Truncate long titles safely using plain periods "..." instead of "…"
+    title_display = event_title if len(event_title) <= 50 else event_title[:47] + "..."
     c.drawString(14*mm, H - 48*mm, title_display)
 
     # Tier badge
@@ -121,9 +121,11 @@ def _draw_ticket_page(
     # Date + venue on blue band
     c.setFillColor(colors.HexColor("#bae6fd"))
     c.setFont("Helvetica", 10)
-    c.drawString(14*mm, H - 75*mm, f"📅  {event_date}")
+    
+    # FIX: Remove emojis as ReportLab's Helvetica does not support rendering them
+    c.drawString(14*mm, H - 75*mm, f"Date: {event_date}")
     if event_venue:
-        c.drawString(14*mm, H - 83*mm, f"📍  {event_venue}")
+        c.drawString(14*mm, H - 83*mm, f"Venue: {event_venue}")
 
     # ── Divider with tear-notch look ────────────────────────────────────────
     divider_y = H - 105*mm
@@ -170,11 +172,13 @@ def _draw_ticket_page(
         c.drawString(detail_x, y + 4*mm, label.upper())
         c.setFillColor(INK_900)
         c.setFont("Helvetica-Bold", 11)
-        c.drawString(detail_x, y, value or "—")
+        # FIX: Replaced em-dash "—" with a standard hyphen "-"
+        c.drawString(detail_x, y, value or "-")
 
     draw_detail("Ticket holder",  holder_name,   detail_y)
     draw_detail("Email",          holder_email,  detail_y - row_gap)
-    draw_detail("Ticket code",    ticket_code[:8].upper() + "…", detail_y - 2*row_gap)
+    # FIX: Replaced ellipsis "…" with standard periods "..."
+    draw_detail("Ticket code",    ticket_code[:8].upper() + "...", detail_y - 2*row_gap)
 
     if amount_paid:
         draw_detail("Amount paid", f"KES {int(amount_paid):,}", detail_y - 3*row_gap)
@@ -192,7 +196,6 @@ def _draw_ticket_page(
     c.setFillColor(WHITE)
     c.setFont("Helvetica", 8)
     c.drawCentredString(W / 2, 12*mm, "This ticket is valid for one person only. Non-transferable.")
-    c.setFont("Helvetica", 7)
     c.drawCentredString(W / 2, 6*mm, "For support: hello@ticketinit.co.ke  |  +254 707 991 991")
 
 
