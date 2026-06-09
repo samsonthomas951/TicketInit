@@ -921,11 +921,20 @@ async def cart_add(
     tier = db.query(models.TicketTier).filter(models.TicketTier.id == id).first()
     if not tier:
         raise HTTPException(404)
+
     cart = _get_cart(request)
+
     if quantity <= 0:
         cart.pop(str(id), None)
     else:
-        cart[str(id)] = quantity
+        avail = (tier.capacity - (tier.sold or 0)) if tier.capacity else 9999
+        if avail <= 0:
+            # Sold out —  just redirect back without adding
+            _save_cart(request, cart)
+            return RedirectResponse(f"/e/{slug}", status_code=303)
+        capped_qty = min(quantity, 10, avail)
+        cart[str(id)] = capped_qty
+
     _save_cart(request, cart)
     return RedirectResponse(f"/e/{slug}", status_code=303)
 
@@ -947,6 +956,7 @@ async def cart_remove(
 async def cart_bulk_update(
     request: Request,
     redirect: str = Form("/checkout"),
+    db: Session = Depends(get_db),
 ):
     form   = await request.form()
     cart   = _get_cart(request)
@@ -959,7 +969,11 @@ async def cart_bulk_update(
                 if qty <= 0:
                     cart.pop(tier_id, None)
                 else:
-                    cart[tier_id] = qty
+                    tier = db.query(models.TicketTier).filter(
+                        models.TicketTier.id == int(tier_id)
+                    ).first()
+                    avail = (tier.capacity - (tier.sold or 0)) if (tier and tier.capacity) else 9999
+                    cart[tier_id] = min(qty, 10, avail)
             except ValueError:
                 pass
     _save_cart(request, cart)
@@ -1109,7 +1123,7 @@ async def mpesa_callback(request: Request, db: Session = Depends(get_db)):
 
 
 def _finalise_order(order: models.Order, db: Session):
-    """Mark order paid and generate PDF tickets. Idempotent."""
+    """Mark order paid, increment tier sold counts, and generate PDF tickets. Idempotent."""
     if order.status == "paid":
         return
 
@@ -1117,6 +1131,14 @@ def _finalise_order(order: models.Order, db: Session):
     db.commit()
 
     items = json.loads(order.items_json or "[]")
+    for item in items:
+        tier = db.query(models.TicketTier).filter(
+            models.TicketTier.id == item["tier_id"]
+        ).first()
+        if tier:
+            tier.sold = (tier.sold or 0) + item.get("quantity", 1)
+    db.commit()
+
     try:
         _pdf_path, ticket_records = generate_pdf_tickets(
             order, items, base_url=APP_BASE_URL,
